@@ -1,13 +1,9 @@
 #include <iostream>
-#include <Eigen/Core>
+#include <gsl/gsl_sf_bessel.h>
 
 int main(){
-  Eigen::MatrixXd mat(2,2);
-  mat(0,0) = 3;
-  mat(1,0) = 2.5;
-  mat(0,1) = -1;
-  mat(1,1) = mat(1,0) + mat(0,1);
-  std::cout << mat << std::endl;
-
+  double x = 5.0;
+  double y = gsl_sf_bessel_J0 (x);
+  printf("J0(%g) = %.18e\n",x,y);
   return 0;
 }
