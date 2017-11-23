@@ -8,24 +8,28 @@
 
 class RigidBody{
 public:
-  RigidBody(const double mass);
+  RigidBody(const double mass, const double time);
 
   ~RigidBody();
 
-  void update(double t);
+  void update(const double dt);
 
   /* compute the star of angular velocity given as a vector
    * this matrix should be freed using gsl_matrix_free()
    */
   static gsl_matrix *star(gsl_vector *vector);
 
-private:
-  double mass;
-  gsl_vector *state;
-  gsl_vector *force;
-  gsl_vector *torque;
+  /* 20 state variables */
+  static const unsigned int STATE_SIZE = 20;
 
-  gsl_odeiv2_system ode_system;
+  gsl_matrix *getInertiaTensor();
+
+private:
+  double time;
+  gsl_vector *state;
+  gsl_matrix *inertia_tensor;
+
+  gsl_odeiv2_driver *ode_driver;
 };
 
 #endif /*header guard */

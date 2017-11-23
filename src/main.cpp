@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <gsl/gsl_matrix.h>
+#include "rigidbody.hpp"
 
 int main(){
   int i,j;
@@ -13,5 +14,10 @@ int main(){
       printf("m(%d,%d) = %g\n",i,j,gsl_matrix_get(m,i,j));
 
   gsl_matrix_free(m);
+
+  RigidBody rbody(100.0,0.0);
+
+  rbody.update(1.0);
+
   return 0;
 }
