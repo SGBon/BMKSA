@@ -1,6 +1,6 @@
 #include <cstdio>
 #include <gsl/gsl_matrix.h>
-#include "rigidbody.hpp"
+#include "rocket.hpp"
 
 int main(){
   int i,j;
@@ -15,9 +15,14 @@ int main(){
 
   gsl_matrix_free(m);
 
-  RigidBody rbody(100.0,0.0);
+  /*
+  RigidBody rigidbody(100,0.0);
+  rigidbody.update(0.1);
+  */
+  
+  Rocket rocket(0.1);
+  rocket.step();
 
-  rbody.update(1.0);
 
   return 0;
 }

@@ -24,11 +24,14 @@ public:
 
   gsl_matrix *getInertiaTensor();
 
+  void updateInertiaTensor(double inertia_tensor[]);
+
 private:
   double time;
   gsl_vector *state;
   gsl_matrix *inertia_tensor;
 
+  gsl_odeiv2_system *ode_system;
   gsl_odeiv2_driver *ode_driver;
 };
 

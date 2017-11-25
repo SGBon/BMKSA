@@ -1,12 +1,13 @@
 #include "rigidbody.hpp"
 #include <cstring>
+#include <cstdio>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
   int s = 0;
-  double dm = 0.0; /* loss of mass due to fuel */
+  double dm = 1.0; /* loss of mass due to fuel */
   gsl_vector *force = gsl_vector_calloc(3);
   gsl_vector *torque = gsl_vector_calloc(3);
 
@@ -78,8 +79,13 @@ RigidBody::RigidBody(const double mass, const double time):
     gsl_vector_set(this->state,7,1);
     gsl_vector_set(this->state,11,1);
 
-    gsl_odeiv2_system ode_system = {rigid_body_ode,NULL,STATE_SIZE,this};
-    this->ode_driver = gsl_odeiv2_driver_alloc_y_new(&ode_system, gsl_odeiv2_step_rkf45,
+    this->ode_system = new gsl_odeiv2_system;
+    ode_system->function = rigid_body_ode;
+    ode_system->jacobian = NULL;
+    ode_system->dimension = STATE_SIZE;
+    ode_system->params = this;
+    
+    this->ode_driver = gsl_odeiv2_driver_alloc_y_new(ode_system, gsl_odeiv2_step_rkf45,
       0.01, 1e-6, 0.0);
   }
 
@@ -88,6 +94,7 @@ RigidBody::~RigidBody(){
   gsl_matrix_free(this->inertia_tensor);
 
   gsl_odeiv2_driver_free(this->ode_driver);
+  delete this->ode_system;
 }
 
 gsl_matrix *RigidBody::star(gsl_vector *vector){
@@ -107,9 +114,16 @@ gsl_matrix *RigidBody::star(gsl_vector *vector){
 }
 
 void RigidBody::update(const double dt){
+  //this->ode_driver->sys->params = this; /* safety check */
+
+  printf("%p\n",this->ode_driver->sys->params);
   gsl_odeiv2_driver_apply(this->ode_driver,&this->time,dt,this->state->data);
 }
 
 gsl_matrix *RigidBody::getInertiaTensor(){
   return this->inertia_tensor;
+}
+
+void RigidBody::updateInertiaTensor(double inertia_tensor[]){
+  memcpy(this->inertia_tensor->data,inertia_tensor,9*sizeof(double));
 }
