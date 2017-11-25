@@ -84,7 +84,7 @@ RigidBody::RigidBody(const double mass, const double time):
     ode_system->jacobian = NULL;
     ode_system->dimension = STATE_SIZE;
     ode_system->params = this;
-    
+
     this->ode_driver = gsl_odeiv2_driver_alloc_y_new(ode_system, gsl_odeiv2_step_rkf45,
       0.01, 1e-6, 0.0);
   }
@@ -114,9 +114,6 @@ gsl_matrix *RigidBody::star(gsl_vector *vector){
 }
 
 void RigidBody::update(const double dt){
-  //this->ode_driver->sys->params = this; /* safety check */
-
-  printf("%p\n",this->ode_driver->sys->params);
   gsl_odeiv2_driver_apply(this->ode_driver,&this->time,dt,this->state->data);
 }
 
@@ -126,4 +123,8 @@ gsl_matrix *RigidBody::getInertiaTensor(){
 
 void RigidBody::updateInertiaTensor(double inertia_tensor[]){
   memcpy(this->inertia_tensor->data,inertia_tensor,9*sizeof(double));
+}
+
+double RigidBody::getMass(){
+  return gsl_vector_get(this->state,19);
 }

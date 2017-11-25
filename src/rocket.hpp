@@ -15,6 +15,8 @@ private:
   const double dt;
   RigidBody rigid_body;
 
+  const double radius;
+
   void recomputeInertiaTensor();
 };
 

@@ -26,6 +26,8 @@ public:
 
   void updateInertiaTensor(double inertia_tensor[]);
 
+  double getMass();
+
 private:
   double time;
   gsl_vector *state;
