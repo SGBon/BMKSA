@@ -22,6 +22,8 @@ public:
   /* 20 state variables */
   static const unsigned int STATE_SIZE = 20;
 
+  static const double max_consumption;
+
   gsl_matrix *getInertiaTensor();
 
   gsl_vector *getThrustDirection();
@@ -32,8 +34,13 @@ public:
 
   void print();
 
+  void throttle(double throttle);
+
+  double getMassFlow();
+
 private:
   double time;
+  double mass_flow;
   gsl_vector *state;
   gsl_vector *thrust_direction;
   gsl_matrix *inertia_tensor;

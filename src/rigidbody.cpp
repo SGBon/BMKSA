@@ -4,10 +4,12 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
+const double RigidBody::max_consumption = -273.6;
+
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
   int s = 0;
-  double dm = -100.0; /* loss of mass due to fuel */
+  double dm = rigidbody->getMassFlow(); /* loss of mass due to fuel */
   const double Isp = 282; /* specific impulse TODO: these values should be changed from rocket and passed in */
   gsl_vector *direction = gsl_vector_alloc(3);
   gsl_vector *force = gsl_vector_calloc(3);
@@ -78,6 +80,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
 
 RigidBody::RigidBody(const double mass, const double time):
   time(time),
+  mass_flow(max_consumption),
   state(gsl_vector_calloc(STATE_SIZE)),
   thrust_direction(gsl_vector_calloc(3)),
   inertia_tensor(gsl_matrix_calloc(3,3))
@@ -154,4 +157,17 @@ void RigidBody::print(){
     printf("%lf ",this->state->data[i]);
   }
   printf("\n");
+}
+
+void RigidBody::throttle(double throttle){
+  if(throttle > 1){
+    throttle = 1;
+  }else if(throttle < 0){
+    throttle = 0;
+  }
+  mass_flow = throttle*max_consumption;
+}
+
+double RigidBody::getMassFlow(){
+  return this->mass_flow;
 }
