@@ -3,7 +3,7 @@
 
 #include "rocket.hpp"
 
-void demoRocket(Rocket& rocket, int* argc, char** argv);
+int demoRocket(Rocket& rocket, int* argc, char** argv);
 
 
 #endif //RSIM_DEMO_ROCKET_HPP

@@ -10,6 +10,6 @@
 
 int main(int argc, char** argv){
   Rocket rocket(0.1);
-  demoRocket(rocket, &argc, argv);
-  return 0;
+  int ret = demoRocket(rocket, &argc, argv);
+  return ret;
 }
