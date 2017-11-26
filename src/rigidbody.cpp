@@ -7,16 +7,18 @@
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
   int s = 0;
-  double dm = 1.0; /* loss of mass due to fuel */
+  double dm = -100.0; /* loss of mass due to fuel */
+  const double Isp = 282; /* specific impulse TODO: these values should be changed from rocket and passed in */
+  gsl_vector *direction = gsl_vector_alloc(3);
   gsl_vector *force = gsl_vector_calloc(3);
   gsl_vector *torque = gsl_vector_calloc(3);
 
-  /* inertia inversion stuff */
+  /* inertia inversion data */
   gsl_matrix *inertia_copy = gsl_matrix_calloc(3,3);
   gsl_matrix *inertia_inverse = gsl_matrix_calloc(3,3);
   gsl_permutation *p = gsl_permutation_alloc(3);
-
   gsl_matrix_memcpy(inertia_copy,rigidbody->getInertiaTensor());
+
   /* compute inverse of inertia tensor */
   gsl_linalg_LU_decomp(inertia_copy,p,&s);
   gsl_linalg_LU_invert(inertia_copy,p,inertia_inverse);
@@ -27,10 +29,16 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   memset(dydt,0,20*sizeof(double));
 
   /* compute force from the combination of gravity, drag, lift, thrust */
+  memcpy(direction->data,rigidbody->getThrustDirection()->data,3*sizeof(double));
+  const double thrust = -9.81*Isp*dm;
+  gsl_vector_scale(direction,thrust);
+  gsl_vector_add(force,direction);
+  gsl_vector_free(direction);
+
 
   /* compute torque from force */
 
-  /* compute dr/dt () */
+  /* compute dr/dt TODO: turn these into matrix views on stack arrays */
   gsl_matrix_const_view r_view = gsl_matrix_const_view_array(&y[3],3,3);
   const gsl_matrix *rotation = &r_view.matrix;
   gsl_matrix *product = gsl_matrix_alloc(3,3);
@@ -59,8 +67,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   memcpy(&dydt[3],product->data,9*sizeof(double));
   memcpy(&dydt[12],force->data,3*sizeof(double)); /* set dP/dt as force */
   memcpy(&dydt[15],torque->data,3*sizeof(double)); /* set dL/dt as torque */
-
-  /* recompute inertia tensor and save in rigidbody */
+  dydt[19] = dm;
 
   gsl_matrix_free(product);
   gsl_vector_free(force);
@@ -72,12 +79,19 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
 RigidBody::RigidBody(const double mass, const double time):
   time(time),
   state(gsl_vector_calloc(STATE_SIZE)),
+  thrust_direction(gsl_vector_calloc(3)),
   inertia_tensor(gsl_matrix_calloc(3,3))
   {
     /* rotation matrix starts as identity matrix */
     gsl_vector_set(this->state,3,1);
     gsl_vector_set(this->state,7,1);
     gsl_vector_set(this->state,11,1);
+
+    /* set mass */
+    gsl_vector_set(this->state,19,mass);
+
+    /* set thrust direction to be straight up at launch */
+    gsl_vector_set(this->thrust_direction,1,1.0);
 
     this->ode_system = new gsl_odeiv2_system;
     ode_system->function = rigid_body_ode;
@@ -91,6 +105,7 @@ RigidBody::RigidBody(const double mass, const double time):
 
 RigidBody::~RigidBody(){
   gsl_vector_free(this->state);
+  gsl_vector_free(thrust_direction);
   gsl_matrix_free(this->inertia_tensor);
 
   gsl_odeiv2_driver_free(this->ode_driver);
@@ -114,11 +129,15 @@ gsl_matrix *RigidBody::star(gsl_vector *vector){
 }
 
 void RigidBody::update(const double dt){
-  gsl_odeiv2_driver_apply(this->ode_driver,&this->time,dt,this->state->data);
+  gsl_odeiv2_driver_apply(this->ode_driver,&this->time,this->time + dt,this->state->data);
 }
 
 gsl_matrix *RigidBody::getInertiaTensor(){
   return this->inertia_tensor;
+}
+
+gsl_vector *RigidBody::getThrustDirection(){
+  return this->thrust_direction;
 }
 
 void RigidBody::updateInertiaTensor(double inertia_tensor[]){
@@ -127,4 +146,12 @@ void RigidBody::updateInertiaTensor(double inertia_tensor[]){
 
 double RigidBody::getMass(){
   return gsl_vector_get(this->state,19);
+}
+
+void RigidBody::print(){
+  printf("State: ");
+  for(unsigned int i = 0; i < STATE_SIZE; ++i){
+    printf("%lf ",this->state->data[i]);
+  }
+  printf("\n");
 }

@@ -10,6 +10,8 @@ public:
 
   void step();
 
+  void print();
+
 private:
   unsigned int stage; /* stage rocket is on */
   const double dt;
@@ -18,6 +20,7 @@ private:
   const double radius;
 
   void recomputeInertiaTensor();
+
 };
 
 #endif

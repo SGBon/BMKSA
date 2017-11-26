@@ -24,13 +24,18 @@ public:
 
   gsl_matrix *getInertiaTensor();
 
+  gsl_vector *getThrustDirection();
+
   void updateInertiaTensor(double inertia_tensor[]);
 
   double getMass();
 
+  void print();
+
 private:
   double time;
   gsl_vector *state;
+  gsl_vector *thrust_direction;
   gsl_matrix *inertia_tensor;
 
   gsl_odeiv2_system *ode_system;

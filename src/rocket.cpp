@@ -20,7 +20,7 @@ static double stage_mass_RP1[] = {155870,123570,32300};
 Rocket::Rocket(const double dt):
   stage(0),
   dt(dt),
-  rigid_body(100.0,0.0),
+  rigid_body(stage_mass_empty[0] + stage_mass_LOX[0] + stage_mass_RP1[0],0.0),
   radius(3.66/2){
     recomputeInertiaTensor();
   }
@@ -34,13 +34,21 @@ void Rocket::step(){
   this->recomputeInertiaTensor();
 }
 
+void Rocket::print(){
+  this->rigid_body.print();
+}
+
 void Rocket::recomputeInertiaTensor(){
   double it[9];
   memset(it,0,9*sizeof(double)); /* zero out inertia tensor */
 
-  const double m = this->rigid_body.getMass();
+  const double mp = this->rigid_body.getMass();
+  const double me = stage_mass_empty[stage];
   const double h = stage_heights[stage];
 
   /* recompute the tensor */
+  it[0] = me*(3.0*this->radius*this->radius + h*h)/12.0;
+  it[4] = it[0];
+  it[8] = me*this->radius*this->radius/2;
   this->rigid_body.updateInertiaTensor(it);
 }
