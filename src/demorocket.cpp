@@ -4,9 +4,9 @@
 #include <iostream>
 
 // OpenGL
-#include <gl/glew.h>
-#include <gl/glut.h>
-#include <gl/freeglut_ext.h>
+#include <GL/glew.h>
+#include <GL/glut.h>
+#include <GL/freeglut_ext.h>
 
 
 void demoRocket(Rocket& rocket, int* argc, char** argv) {
@@ -21,7 +21,7 @@ void demoRocket(Rocket& rocket, int* argc, char** argv) {
     // check for error
     //GLenum error = glewInit();
     //if(error != GLEW_OK)
-    
+
     rocket.print();
     /* run for 100 seconds */
     for(int i = 0; i < 1000; ++i){
