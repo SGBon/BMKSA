@@ -22,13 +22,14 @@ static const double stage_heights[] = {70,47,12.6};
 static const double stage_mass_empty[] = {26200,22200,4000};
 static const double stage_mass_fuel[] = {507500,398887,108185};
 
-/* payload of launch from video */
-static const double payload = 2902;
+/* payload of launch from video (dragon spacecraft) */
+static const double payload_mass = 6000;
+static const double payload_height = 6.1;
 
 Rocket::Rocket(const double dt):
   stage(1),
   dt(dt),
-  rigid_body(stage_mass_empty[0] + stage_mass_fuel[0],0.0),
+  rigid_body(stage_mass_empty[0] + stage_mass_fuel[0] + payload_mass,0.0),
   radius(3.66/2){
     recomputeCentreMass();
     /* compute second stage inertia tensor */
@@ -57,11 +58,13 @@ void Rocket::step(){
   }else if (stage == 2){
     fuel_in_stage = this->rigid_body.getMass() - stage_mass_empty[2];
     if(fuel_in_stage <= 0.0){
-      this->rigid_body.throttle(0.0);
+      this->nextstage();
     }
   }
-  this->recomputeCentreMass();
-  this->recomputeInertiaTensor();
+  if(stage < 3){
+    this->recomputeCentreMass();
+    this->recomputeInertiaTensor();
+  }
 }
 
 void Rocket::print(){
@@ -144,7 +147,11 @@ void Rocket::recomputeInertiaTensor(){
     const double m2 = this->rigid_body.getMass();
     it[0] = m2*(3.0*radius*radius+h2*h2)/12.0;
     it[4] = it[0];
-    it[8] = m2*radius*radius/12.0;
+    it[8] = m2*radius*radius/2.0;
+  }else if(stage == 3){
+    it[0] = payload_mass*(3.0*radius*radius+payload_height*payload_height)/12.0;
+    it[4] = it[0];
+    it[8] = payload_mass*radius*radius/2.0;
   }
 
   this->rigid_body.updateInertiaTensor(it);
@@ -180,11 +187,23 @@ void Rocket::recomputeCentreMass(){
     double stage2_empty_centre[3] = {radius,stage_heights[2]/2,radius};
     const double stage2_mass = this->rigid_body.getMass();
     memcpy(this->centre_of_mass,stage2_empty_centre,3*sizeof(double));
+  }else if(stage == 3){
+    this->centre_of_mass[0] = radius;
+    this->centre_of_mass[1] = payload_height/2.0;
+    this->centre_of_mass[2] = radius;
   }
 }
 
 void Rocket::nextstage(){
   printf("Fuel in %d ran out, staging\n",stage);
-  rigid_body.nextstage(stage_mass_fuel[2]+stage_mass_empty[2]);
-  ++stage;
+  if(stage == 1){
+    rigid_body.nextstage(stage_mass_fuel[2]+stage_mass_empty[2]+payload_mass);
+    ++stage;
+  }else if(stage == 2){
+    rigid_body.nextstage(payload_mass);
+    rigid_body.throttle(0.0);
+    ++stage;
+    recomputeCentreMass();
+    recomputeInertiaTensor();
+  }
 }
