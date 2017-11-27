@@ -164,11 +164,13 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // setup glut
     std::cout << "Initializing window" << std::endl;
     glutInit(argc, argv);
+    glutInitContextVersion(3,3);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(640,640);
     glutCreateWindow("Rocket Science");
 
     // check for error
+    glewExperimental = true;
     GLenum error = glewInit();
     if(error != GLEW_OK) {
         std::cerr << "Tried to start GLEW, but then this happened: "

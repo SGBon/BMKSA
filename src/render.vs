@@ -1,3 +1,4 @@
+#version 330 core
 in vec4 vPosition;
 
 out vec3 position;
