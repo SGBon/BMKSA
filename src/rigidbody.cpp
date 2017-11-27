@@ -7,15 +7,23 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
-const double RigidBody::max_consumption = -273.6*9;
-
 const double gravitiational_constant = 6.67408e-11;
+
+static const double max_ISP = 307.4; /* specific impulse in vacuum of stage 1 engine */
+static const double min_ISP = 281.8; /* sealevel */
+static const double merlinvac_isp = 348.0; /* stage 2 engine ISP */
+
+/* fuel consumption of stage 1 and 2 */
+static const double merlin1d_fuel = -273.6*9;
+static const double merlinvac_fuel = -273.6;
+
+/* normalize a value between min and max */
+static double normalize(double x, double min, double max);
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
   int s = 0;
   double dm = rigidbody->getMassFlow(); /* loss of mass due to fuel */
-  const double Isp = 281.8; /* specific impulse TODO: these values should be changed from rocket and passed in */
   gsl_vector *direction = gsl_vector_alloc(3);
   gsl_vector *force = gsl_vector_calloc(3);
   gsl_vector *torque = gsl_vector_calloc(3);
@@ -36,12 +44,6 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   memset(dydt,0,20*sizeof(double));
 
   /* compute force from the combination of gravity, drag, lift, thrust */
-  memcpy(direction->data,rigidbody->getThrustDirection()->data,3*sizeof(double));
-  const double thrust = -9.81*Isp*dm;
-  gsl_vector_scale(direction,thrust);
-  gsl_vector_add(force,direction);
-  gsl_vector_free(direction);
-
   /* gravity */
   double dist;
   gsl_vector *gdir = gsl_vector_calloc(3); /* gravity direction */
@@ -57,6 +59,30 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
 
   gsl_vector_add(force,gdir);
   gsl_vector_free(gdir);
+
+  /* thrust */
+  memcpy(direction->data,rigidbody->getThrustDirection()->data,3*sizeof(double));
+  double Isp;
+  if(rigidbody->vac_thruster){
+    /* specific impulse based on distance from sealevel
+     * the karman line begins at 100km
+     */
+    Isp = normalize(dist - rigidbody->earth.radius,0.0,100000.0);
+    /* clamp range */
+    if(Isp < 0){
+      Isp = 0;
+    }else if(Isp > 1){
+      Isp = 1;
+    }
+    Isp = Isp*(max_ISP-min_ISP)+min_ISP;
+  }else{
+    /* constant specific impulse of stage 2 thruster */
+    Isp = merlinvac_isp;
+  }
+  const double thrust = -9.81*dm*Isp;
+  gsl_vector_scale(direction,thrust);
+  gsl_vector_add(force,direction);
+  gsl_vector_free(direction);
 
   /* TODO: drag */
 
@@ -104,7 +130,8 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
 
 RigidBody::RigidBody(const double mass, const double time):
   time(time),
-  mass_flow(max_consumption),
+  mass_flow(merlin1d_fuel),
+  max_flow(merlin1d_fuel),
   state(gsl_vector_calloc(STATE_SIZE)),
   thrust_direction(gsl_vector_calloc(3)),
   inertia_tensor(gsl_matrix_calloc(3,3))
@@ -189,9 +216,20 @@ void RigidBody::throttle(double throttle){
   }else if(throttle < 0){
     throttle = 0;
   }
-  mass_flow = throttle*max_consumption;
+  mass_flow = throttle*max_flow;
 }
 
 double RigidBody::getMassFlow(){
   return this->mass_flow;
+}
+
+void RigidBody::nextstage(double newmass){
+  vac_thruster = true;
+  mass_flow = merlinvac_fuel;
+  max_flow = mass_flow;
+  gsl_vector_set(this->state,19,newmass);
+}
+
+double normalize(double x, double min, double max){
+  return (x - min)/(max-min);
 }

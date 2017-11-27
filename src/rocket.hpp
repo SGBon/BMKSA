@@ -25,6 +25,8 @@ private:
   void recomputeInertiaTensor();
 
   void recomputeCentreMass();
+
+  void nextstage();
 };
 
 #endif

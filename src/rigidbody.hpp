@@ -24,8 +24,6 @@ public:
   /* 20 state variables */
   static const unsigned int STATE_SIZE = 20;
 
-  static const double max_consumption;
-
   gsl_matrix *getInertiaTensor();
 
   gsl_vector *getThrustDirection();
@@ -36,15 +34,22 @@ public:
 
   void print();
 
+  /* set speed and fuel consumption */
   void throttle(double throttle);
 
   double getMassFlow();
 
+  /* make changes for stage 2 */
+  void nextstage(double newmass);
+
   Earth earth;
+
+  bool vac_thruster = false;
 
 private:
   double time;
   double mass_flow; /* consumption of fuel in kg/s */
+  double max_flow;
   gsl_vector *state;
   gsl_vector *thrust_direction;
   gsl_matrix *inertia_tensor;

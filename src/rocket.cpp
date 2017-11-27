@@ -48,6 +48,18 @@ Rocket::~Rocket(){
 
 void Rocket::step(){
   this->rigid_body.update(this->dt);
+  double fuel_in_stage = 0;
+  if(stage == 1){
+    fuel_in_stage = this->rigid_body.getMass() - stage_mass_empty[0] - stage_mass_fuel[2];
+    if(fuel_in_stage <= 0.0){
+      this->nextstage();
+    }
+  }else if (stage == 2){
+    fuel_in_stage = this->rigid_body.getMass() - stage_mass_empty[2];
+    if(fuel_in_stage <= 0.0){
+      this->rigid_body.throttle(0.0);
+    }
+  }
   this->recomputeCentreMass();
   this->recomputeInertiaTensor();
 }
@@ -128,7 +140,11 @@ void Rocket::recomputeInertiaTensor(){
   }
   /* no first stage anymore, second stage tensor changes */
   else if(stage == 2){
-    memset(inertia_tensor_s2,0,9*sizeof(double));
+    const double h2 = stage_heights[2];
+    const double m2 = this->rigid_body.getMass();
+    it[0] = m2*(3.0*radius*radius+h2*h2)/12.0;
+    it[4] = it[0];
+    it[8] = m2*radius*radius/12.0;
   }
 
   this->rigid_body.updateInertiaTensor(it);
@@ -161,6 +177,14 @@ void Rocket::recomputeCentreMass(){
 
     gsl_vector_scale(&COMview.vector,1.0/(stage1_mass+stage2_mass));
   }else if(stage == 2){
-
+    double stage2_empty_centre[3] = {radius,stage_heights[2]/2,radius};
+    const double stage2_mass = this->rigid_body.getMass();
+    memcpy(this->centre_of_mass,stage2_empty_centre,3*sizeof(double));
   }
+}
+
+void Rocket::nextstage(){
+  printf("Fuel in %d ran out, staging\n",stage);
+  rigid_body.nextstage(stage_mass_fuel[2]+stage_mass_empty[2]);
+  ++stage;
 }
