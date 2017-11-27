@@ -7,6 +7,7 @@
 // STD
 #include <iostream>
 #include <string>
+#include <vector>
 
 // OpenGL
 #include <GL/glew.h>
@@ -16,10 +17,12 @@
 
 // project
 #include "meshdata.hpp"
+#include "vao.hpp"
 
 // global values
 static const std::string FRAGMENT_SHADER_PATH = "../render.fs";
 static const std::string VERTEX_SHADER_PATH = "../render.vs";
+static std::vector<RSimView::VertexArrayObject> VAO_LIST;
 
 // read in that shader file guy
 std::string readShaderFile(const std::string& filename) {
@@ -122,11 +125,14 @@ int buildProgram(int vs, int fs) {
     }
 }
 
-
 namespace window {
 void onDisplay(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glutSolidTeapot(10.0);
+    for(RSimView::VertexArrayObject vao : VAO_LIST) {
+        glUseProgram(vao.program);
+        glBindVertexArray(vao.id);
+        glDrawElements(GL_TRIANGLES, vao.index_count, GL_UNSIGNED_INT, NULL);
+    }
     glutSwapBuffers();
 }
 
@@ -180,7 +186,10 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     }
 
 
-    int program = buildProgram(vertex_shader, fragment_shader);
+    // setup program
+    GLuint program = buildProgram(vertex_shader, fragment_shader);
+    RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(payload_mesh, program);
+    VAO_LIST.push_back(payload_vao);
     
     // hookup glut functions
     glutDisplayFunc(window::onDisplay);
