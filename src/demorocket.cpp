@@ -9,6 +9,9 @@
 #include <GL/gl.h>
 #include <GL/freeglut_ext.h>
 
+// project
+#include "meshdata.hpp"
+
 
 
 
@@ -42,9 +45,10 @@ void onIdle() {
 } // namespace window
 
 
-
-
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
+    // load payload
+    RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
+    
     // setup glut
     glutInit(argc, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
