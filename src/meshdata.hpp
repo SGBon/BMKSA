@@ -20,12 +20,12 @@ typedef GLsizei SizeT;
 class MeshData {
 public:
     /// Obtain references to the different datatypes. 
-    MeshData(FloatT* pvertices, FloatT* pnormals, SizeT pvertex_count, IndexT* pindices, SizeT pindex_count);
+    MeshData(FloatT* pvertices, FloatT* pnormals, SizeT pvertex_length, IndexT* pindices, SizeT index_length);
 
     FloatT* vertices;
     FloatT* normals;
     IndexT* indices;
-    SizeT vertex_count;
+    SizeT vertex_length;
     SizeT index_count;
 };
 
