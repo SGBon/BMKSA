@@ -43,7 +43,7 @@ std::string readShaderFile(const std::string& filename) {
         char* buffer = new char[length + 1];
         int written_count = fread(buffer, sizeof(char), length, fid);
         buffer[written_count] = 0;
-        
+
         // copy to a string and return
         std::string ret(buffer, written_count-1);
         delete[] buffer;
@@ -61,7 +61,7 @@ int buildShader(int type, const std::string& filename) {
     const char* source_ptr = source.c_str();
     glShaderSource(shader, 1, (const GLchar**)&source_ptr, 0);
     glCompileShader(shader);
-    
+
     // check compilation
     int result;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
@@ -72,7 +72,7 @@ int buildShader(int type, const std::string& filename) {
         // print out the error message
         char* buffer = new char[result];
         glGetShaderInfoLog(shader, result, 0, buffer);
-        std::cerr << "error compiling shader: " << filename << std::endl 
+        std::cerr << "error compiling shader: " << filename << std::endl
             << buffer << std::endl;
 
         // we're done here
@@ -99,7 +99,7 @@ int buildProgram(int vs, int fs) {
     if(fs_type != GL_FRAGMENT_SHADER) {
         printf("no fragment shader\n");
     }
-    
+
 
     // link program
     glLinkProgram(program);
@@ -114,7 +114,7 @@ int buildProgram(int vs, int fs) {
         // print out the error message
         char* buffer = new char[result];
         glGetProgramInfoLog(program, result, 0, buffer);
-        std::cerr << "error linking program: " << std::endl 
+        std::cerr << "error linking program: " << std::endl
             << buffer << std::endl;
 
         // we're done here
@@ -160,8 +160,9 @@ void onIdle() {
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // load payload
     RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
-    
+
     // setup glut
+    std::cout << "Initializing window" << std::endl;
     glutInit(argc, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(640,640);
@@ -170,12 +171,13 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // check for error
     GLenum error = glewInit();
     if(error != GLEW_OK) {
-        std::cerr << "Tried to start GLEW, but then this happened: " 
+        std::cerr << "Tried to start GLEW, but then this happened: "
             << glewGetErrorString(error) << std::endl;
         return 1;
     }
 
     // load shaders
+    std::cout << "Loading Shaders" << std::endl;
     int fragment_shader = buildShader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER_PATH);
     int vertex_shader = buildShader(GL_VERTEX_SHADER, VERTEX_SHADER_PATH);
     if(fragment_shader == 0) {
@@ -185,12 +187,15 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
         printf("error loading vertex shader\n");
     }
 
-
     // setup program
     GLuint program = buildProgram(vertex_shader, fragment_shader);
+    if(program == 0) {
+        std::cerr << "error occured loading program" << std::endl;
+    }
+
     RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(payload_mesh, program);
     VAO_LIST.push_back(payload_vao);
-    
+
     // hookup glut functions
     glutDisplayFunc(window::onDisplay);
     glutReshapeFunc(window::onReshape);
@@ -202,8 +207,9 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // enable things
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.6,0.6,0.6,1.0);
-    
+
     // startup main loop
+    std::cout << "Launching Simulation" << std::endl;
     glutMainLoop();
     return 0;
 }
