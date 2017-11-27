@@ -10,6 +10,40 @@
 #include <GL/freeglut_ext.h>
 
 
+
+
+namespace window {
+
+void onDisplay(void) {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glutSolidTeapot(10.0);
+    glutSwapBuffers();
+}
+
+void onReshape(int width, int height) {
+    glViewport(0,0,width,height);
+}
+
+void onVisibilityChange(int state) {
+    //...
+}
+void onCharacterKeyEvent(unsigned char key, int mouseX, int mouseY) {
+    //...
+}
+
+void onOtherKeyEvent(int key, int mouseX, int mouseY) {
+    //,,,
+}
+
+void onIdle() {
+    //...
+}
+
+} // namespace window
+
+
+
+
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // setup glut
     glutInit(argc, argv);
@@ -25,19 +59,18 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     }
     
     // hookup glut functions
-    
+    glutDisplayFunc(window::onDisplay);
+    glutReshapeFunc(window::onReshape);
+    glutKeyboardFunc(window::onCharacterKeyEvent);
+    glutSpecialFunc(window::onOtherKeyEvent);
+    glutIdleFunc(window::onIdle);
+    glutVisibilityFunc(window::onVisibilityChange);
+
     // enable things
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.6,0.6,0.6,1.0);
     
     // startup main loop
     glutMainLoop();
-
-    rocket.print();
-    /* run for 100 seconds */
-    for(int i = 0; i < 1000; ++i){
-    rocket.step();
-    }
-    rocket.print();
     return 0;
 }
