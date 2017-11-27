@@ -1,16 +1,21 @@
 #include "rigidbody.hpp"
+
 #include <cstring>
 #include <cstdio>
+#include <iostream>
+
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
-const double RigidBody::max_consumption = -273.6;
+const double RigidBody::max_consumption = -273.6*9;
+
+const double gravitiational_constant = 6.67408e-11;
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
   int s = 0;
   double dm = rigidbody->getMassFlow(); /* loss of mass due to fuel */
-  const double Isp = 282; /* specific impulse TODO: these values should be changed from rocket and passed in */
+  const double Isp = 281.8; /* specific impulse TODO: these values should be changed from rocket and passed in */
   gsl_vector *direction = gsl_vector_alloc(3);
   gsl_vector *force = gsl_vector_calloc(3);
   gsl_vector *torque = gsl_vector_calloc(3);
@@ -37,6 +42,25 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector_add(force,direction);
   gsl_vector_free(direction);
 
+  /* gravity */
+  double dist;
+  gsl_vector *gdir = gsl_vector_calloc(3); /* gravity direction */
+  gsl_vector_const_view earthpos = gsl_vector_const_view_array(rigidbody->earth.position,3);
+  gsl_vector_const_view rocketpos = gsl_vector_const_view_array(y,3);
+
+  gsl_vector_add(gdir,&earthpos.vector);
+  gsl_vector_sub(gdir,&rocketpos.vector);
+  dist = gsl_blas_dnrm2(gdir);
+
+  const double gforce = gravitiational_constant*y[19]*rigidbody->earth.mass/(dist*dist);
+  gsl_vector_scale(gdir,gforce/dist);
+
+  gsl_vector_add(force,gdir);
+  gsl_vector_free(gdir);
+
+  /* TODO: drag */
+
+  /* TODO: lift */
 
   /* compute torque from force */
 

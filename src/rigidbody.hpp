@@ -6,6 +6,8 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv2.h>
 
+#include "earth.hpp"
+
 class RigidBody{
 public:
   RigidBody(const double mass, const double time);
@@ -38,9 +40,11 @@ public:
 
   double getMassFlow();
 
+  Earth earth;
+
 private:
   double time;
-  double mass_flow;
+  double mass_flow; /* consumption of fuel in kg/s */
   gsl_vector *state;
   gsl_vector *thrust_direction;
   gsl_matrix *inertia_tensor;
