@@ -216,3 +216,7 @@ void RigidBody::nextstage(double newmass){
   max_flow = mass_flow;
   gsl_vector_set(this->state,19,newmass);
 }
+
+double RigidBody::getTime(){
+  return this->time;
+}

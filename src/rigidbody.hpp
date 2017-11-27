@@ -46,6 +46,8 @@ public:
 
   bool vac_thruster = false;
 
+  double getTime();
+
 private:
   double time;
   double mass_flow; /* consumption of fuel in kg/s */
