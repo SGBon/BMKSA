@@ -7,18 +7,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_blas.h>
 
-const double gravitiational_constant = 6.67408e-11;
-
-static const double max_ISP = 307.4; /* specific impulse in vacuum of stage 1 engine */
-static const double min_ISP = 281.8; /* sealevel */
-static const double merlinvac_isp = 348.0; /* stage 2 engine ISP */
-
-/* fuel consumption of stage 1 and 2 */
-static const double merlin1d_fuel = -273.6*9;
-static const double merlinvac_fuel = -273.6;
-
-/* normalize a value between min and max */
-static double normalize(double x, double min, double max);
+#include "common.hpp"
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
@@ -137,9 +126,7 @@ RigidBody::RigidBody(const double mass, const double time):
   inertia_tensor(gsl_matrix_calloc(3,3))
   {
     /* rotation matrix starts as identity matrix */
-    gsl_vector_set(this->state,3,1);
-    gsl_vector_set(this->state,7,1);
-    gsl_vector_set(this->state,11,1);
+    memcpy(&this->state->data[3],identity,9*sizeof(double));
 
     /* set mass */
     gsl_vector_set(this->state,19,mass);
@@ -228,8 +215,4 @@ void RigidBody::nextstage(double newmass){
   mass_flow = merlinvac_fuel;
   max_flow = mass_flow;
   gsl_vector_set(this->state,19,newmass);
-}
-
-double normalize(double x, double min, double max){
-  return (x - min)/(max-min);
 }

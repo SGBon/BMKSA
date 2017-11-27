@@ -6,6 +6,8 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
 
+#include "common.hpp"
+
 /* dimensions of each stage, stage 0 represents when all stages are part of the
  * rocket (ie. the total), stage n is the value of that stage itself
  */
@@ -20,10 +22,8 @@ static const double stage_heights[] = {70,47,12.6};
 static const double stage_mass_empty[] = {26200,22200,4000};
 static const double stage_mass_fuel[] = {507500,398887,108185};
 
-const double identity[9] =
-            { 1,0,0,
-              0,1,0,
-              0,0,1};
+/* payload of launch from video */
+static const double payload = 2902;
 
 Rocket::Rocket(const double dt):
   stage(1),
@@ -31,15 +31,15 @@ Rocket::Rocket(const double dt):
   rigid_body(stage_mass_empty[0] + stage_mass_fuel[0],0.0),
   radius(3.66/2){
     recomputeCentreMass();
-
     /* compute second stage inertia tensor */
     memset(inertia_tensor_s2,0,9*sizeof(double));
     double m2 = stage_mass_empty[2] + stage_mass_fuel[2];
     inertia_tensor_s2[0] = m2*(radius*radius*3.0 + stage_heights[2]*stage_heights[2])/12.0;
     inertia_tensor_s2[4] = inertia_tensor_s2[0];
     inertia_tensor_s2[8] = m2*radius*radius/2;
-
     recomputeInertiaTensor();
+
+    target_orbital_velocity = orbital_velocity(rigid_body.earth.mass,rigid_body.earth.radius+LEO);
   }
 
 Rocket::~Rocket(){

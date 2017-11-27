@@ -22,6 +22,8 @@ private:
 
   const double radius;
 
+  double target_orbital_velocity;
+
   void recomputeInertiaTensor();
 
   void recomputeCentreMass();
