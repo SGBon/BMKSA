@@ -139,7 +139,7 @@ float CAMERA_LONGITUDE, CAMERA_COLATITUDE, CAMERA_RADIUS;
 
 void updateProjection(int width, int height) {
     float ratio = 1.0f * width / height;
-    PROJECTION = glm::perspective(45.0f, ratio, 0.5f, 100.0f);
+    PROJECTION = glm::perspective(45.0f, ratio, 1.0f, 200.0f);
 }
 
 void onDisplay(void) {
@@ -149,7 +149,7 @@ void onDisplay(void) {
         , sin(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
         , cos(CAMERA_COLATITUDE)));
     std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
-    glm::vec3 center(0.0f,0,3.5f);
+    glm::vec3 center(0.0f,0,20.0f);
     glm::vec3 up(0.0f,0.0,-1.0);
     glm::mat4 view(glm::lookAt(eye, center, up));
     glm::mat4 projection(PROJECTION);
@@ -229,6 +229,7 @@ void onIdle() {
 
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // load payload
+    RSimView::MeshData rocket_mesh = RSimView::rocketMeshData();
     RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
 
     // figure out window size
@@ -244,7 +245,7 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     window::updateProjection(width, height);
     window::CAMERA_COLATITUDE = asin(1.0);
     window::CAMERA_LONGITUDE = 0;
-    window::CAMERA_RADIUS = 10;
+    window::CAMERA_RADIUS = 50;
     glutCreateWindow("Rocket Science");
 
 
@@ -277,7 +278,10 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
 
     RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(
         payload_mesh, program);
+    RSimView::VertexArrayObject rocket_vao =RSimView::loadMeshIntoBuffer(
+        rocket_mesh, program);
     VAO_LIST.push_back(payload_vao);
+    VAO_LIST.push_back(rocket_vao);
 
     // hookup glut functions
     glutDisplayFunc(window::onDisplay);

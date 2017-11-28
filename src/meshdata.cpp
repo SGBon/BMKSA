@@ -244,6 +244,75 @@ static IndexT PAYLOAD_INDICES[PAYLOAD_FACE_LENGTH] =
     // end of payload indices
     };
 
+// payload stuff
+static const SizeT ROCKET_VERTEX_COUNT = 16;
+static const SizeT ROCKET_FACE_COUNT = 16;
+static const SizeT ROCKET_VERTEX_LENGTH = ROCKET_VERTEX_COUNT*3;
+static const SizeT ROCKET_FACE_LENGTH = ROCKET_FACE_COUNT*3;
+static FloatT ROCKET_VERTICES[ROCKET_VERTEX_LENGTH] =
+    // top of sleeve
+    {  1.83,  0.00,  4.39
+    ,  1.29, -1.29,  4.39
+    ,  0.00, -1.83,  4.39
+    , -1.29, -1.29,  4.39
+    , -1.83,  0.00,  4.39
+    , -1.29,  1.29,  4.39
+    ,  0.00,  1.83,  4.39
+    ,  1.29,  1.29,  4.39
+
+    // bottom of sleeve
+    ,  1.83,  0.00,  40.0
+    ,  1.29, -1.29,  40.0
+    ,  0.00, -1.83,  40.0
+    , -1.29, -1.29,  40.0
+    , -1.83,  0.00,  40.0
+    , -1.29,  1.29,  40.0
+    ,  0.00,  1.83,  40.0
+    ,  1.29,  1.29,  40.0
+
+
+    // end of rocket vertices
+    };
+
+static FloatT ROCKET_NORMALS[ROCKET_VERTEX_LENGTH] =
+    { 1.00,  0.00,  0.00
+    ,  0.71, -0.71,  0.00
+    ,  0.00, -1.00,  0.00
+    , -0.71, -0.71,  0.00
+    , -1.00,  0.00,  0.00
+    , -0.71,  0.71,  0.00
+    ,  0.00,  1.00,  0.00
+    ,  0.71,  0.71,  0.00
+    ,  1.00,  0.00,  0.00
+    ,  0.71, -0.71,  0.00
+    ,  0.00, -1.00,  0.00
+    , -0.71, -0.71,  0.00
+    , -1.00,  0.00,  0.00
+    , -0.71,  0.71,  0.00
+    ,  0.00,  1.00,  0.00
+    ,  0.71,  0.71,  0.00
+    };
+
+static IndexT ROCKET_INDICES[ROCKET_FACE_LENGTH] = 
+    // roof [0,8)
+    {0,8,9
+    ,0,9,1
+    ,1,9,10
+    ,1,10,2
+    ,2,10,11
+    ,2,11,3
+    ,3,11,12
+    ,3,12,4
+    ,4,12,13
+    ,4,13,5
+    ,5,13,14
+    ,5,14,6
+    ,6,14,15
+    ,6,15,7
+    ,7,15,8
+    ,7,8,0
+    };
+
 
 MeshData::MeshData(FloatT* pvertices, FloatT* pnormals, SizeT pvertex_length, IndexT* pindices, SizeT pindex_count)
     : vertices(pvertices), normals(pnormals)
@@ -258,5 +327,10 @@ MeshData payloadMeshData() {
 MeshData cubeMeshData() {
     return MeshData(CUBE_VERTICES, CUBE_NORMALS, CUBE_VERTEX_LENGTH, CUBE_INDICES, CUBE_FACE_LENGTH);
 }
+
+MeshData rocketMeshData() {
+    return MeshData(ROCKET_VERTICES, ROCKET_NORMALS, ROCKET_VERTEX_LENGTH, ROCKET_INDICES, ROCKET_FACE_LENGTH);
+}
+
 
 } // namespace RSimView
