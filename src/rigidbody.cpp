@@ -258,3 +258,7 @@ void RigidBody::setCentreOfMass(double com[]){
 double *RigidBody::getCentreOfMass(){
   return this->centre_of_mass;
 }
+
+gsl_vector *RigidBody::getState(){
+  return this->state;
+}

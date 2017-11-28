@@ -90,6 +90,26 @@ void Rocket::print(){
   this->rigid_body.print();
 }
 
+glm::vec4 Rocket::getPositionGLM(){
+  gsl_vector *gslpos = this->rigid_body.getState();
+  glm::vec4 glmpos;
+  glmpos.x = gslpos->data[0];
+  glmpos.y = gslpos->data[1];
+  glmpos.z = gslpos->data[2];
+  glmpos.w = 1.0;
+  return glmpos;
+}
+
+glm::vec4 Rocket::getThrustDirectionGLM(){
+  gsl_vector *gslthrust = this->rigid_body.getThrustDirection();
+  glm::vec4 glmthrust;
+  glmthrust.x = gslthrust->data[0];
+  glmthrust.y = gslthrust->data[1];
+  glmthrust.z = gslthrust->data[2];
+  glmthrust.w = 1.0;
+  return glmthrust;
+}
+
 void Rocket::recomputeInertiaTensor(){
   double it[9];
 
