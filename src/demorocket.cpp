@@ -20,6 +20,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 // project
 #include "meshdata.hpp"
@@ -33,12 +34,14 @@ static const char* UPROJECTION = "uProjection";
 static std::vector<RSimView::VertexArrayObject> VAO_LIST;
 static Rocket* ROCKET_MODEL = NULL;
 static int ROCKET_ITER = 0; 
+static glm::mat4 ROTATION_MATRIX;
 
 // updates rocket VAO to reflect changes
 void updateView(double height, glm::vec3 thrust_direction, int stage) {
     double max_height = 112*1e3;
     glm::vec3 ground_color(135.0/255, 211.0/255, 1.0);
     glm::vec3 space_color(33.0/255, 27.0/255, 53.0/255);
+    ROTATION_MATRIX = glm::orientation(thrust_direction, glm::vec3(0,0,-1));
     //std::cout << "updateView" << std::endl;
 
     float percent_up = fmin(max_height, height)/max_height;
@@ -171,6 +174,7 @@ void onDisplay(void) {
     glm::vec3 up(0.0f,0.0,-1.0);
     glm::mat4 view(glm::lookAt(eye, center, up));
     glm::mat4 projection(PROJECTION);
+    glm::mat4 modelView = ROTATION_MATRIX*view;
 
     // draw stuff
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -183,7 +187,7 @@ void onDisplay(void) {
         int uProjection = glGetUniformLocation(vao.program, UPROJECTION);
         
         // set uniforms
-        glUniformMatrix4fv(uModelView, 1, 0, glm::value_ptr(view));
+        glUniformMatrix4fv(uModelView, 1, 0, glm::value_ptr(modelView));
         glUniformMatrix4fv(uProjection, 1, 0, glm::value_ptr(projection));
 
         // draw it
@@ -248,7 +252,7 @@ void onIdle() {
     //ROCKET_MODEL->step();
     // TODO: get values from rocket
     double height = 112*ROCKET_ITER;//placeholder
-    glm::vec3 thrust_direction;
+    glm::vec3 thrust_direction(5*sin(ROCKET_ITER),0,-1);
     int stage = 0;
     updateView(height, thrust_direction, stage);
     ROCKET_ITER++;
