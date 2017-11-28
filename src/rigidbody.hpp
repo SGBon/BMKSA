@@ -26,14 +26,35 @@ public:
 
   gsl_vector *getThrustDirection();
 
+  void setThrustDirection(double direction[]);
+
   void updateInertiaTensor(double inertia_tensor[]);
 
   double getMass();
 
   void print();
 
+  /* set speed and fuel consumption */
+  void throttle(double throttle);
+
+  double getMassFlow();
+
+  /* make changes for stage 2 */
+  void nextstage(double newmass);
+
+  bool vac_thruster = false;
+
+  double getTime();
+
+  void setCentreOfMass(double com[]);
+
+  double *getCentreOfMass();
+
 private:
   double time;
+  double mass_flow; /* consumption of fuel in kg/s */
+  double max_flow;
+  double centre_of_mass[3];
   gsl_vector *state;
   gsl_vector *thrust_direction;
   gsl_matrix *inertia_tensor;
