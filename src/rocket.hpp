@@ -25,6 +25,7 @@ private:
   enum stage_progress{
     S1LAUNCH,
     S1ASCENT,
+    S1COURSE,
     S2SPLIT,
     S2BURN
   } stage_progress;

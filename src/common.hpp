@@ -38,6 +38,9 @@ enum rotation_axis_t{
   ROTATION_AXIS_Z
 };
 
-void rotation_matrix(gsl_matrix *matrix,double theta,rotation_axis_t axis);
+void create_rotation_matrix(gsl_matrix *matrix,double theta,rotation_axis_t axis);
+
+/* debug function does nothing */
+inline void nop(){}
 
 #endif

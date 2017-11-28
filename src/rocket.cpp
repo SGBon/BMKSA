@@ -31,7 +31,8 @@ Rocket::Rocket(const double dt):
   stage(1),
   dt(dt),
   rigid_body(stage_mass_empty[0] + stage_mass_fuel[0] + payload_mass,0.0),
-  radius(3.66/2){
+  radius(3.66/2),
+  stage_progress(S1LAUNCH){
     recomputeCentreMass();
     /* compute second stage inertia tensor */
     memset(inertia_tensor_s2,0,9*sizeof(double));
@@ -49,6 +50,10 @@ Rocket::~Rocket(){
 }
 
 void Rocket::step(){
+  /* debug breakline */
+  if(this->rigid_body.getTime() > 20.0){
+    nop();
+  }
   this->rigid_body.update(this->dt);
   double fuel_in_stage = 0;
   if(stage == 1){
@@ -58,7 +63,16 @@ void Rocket::step(){
     }
     if(this->rigid_body.getTime() > 20.0 && stage_progress == S1LAUNCH){
       stage_progress = S1ASCENT;
-      
+      /* start thrusting towards orbit line to prepare rocket orientation in stage 2 */
+      double orientation[3];
+      gsl_matrix *rotation = gsl_matrix_alloc(3,3);
+      gsl_vector_view o_view = gsl_vector_view_array(orientation,3);
+      gsl_vector_const_view yupview = gsl_vector_const_view_array(y_up,3);
+      create_rotation_matrix(rotation,-M_PI/4,ROTATION_AXIS_Z);
+      gsl_blas_dgemv(CblasNoTrans,1.0,rotation,&yupview.vector,0.0,&o_view.vector);
+
+      rigid_body.setThrustDirection(orientation);
+      gsl_matrix_free(rotation);
     }
   }else if (stage == 2){
     fuel_in_stage = this->rigid_body.getMass() - stage_mass_empty[2];
@@ -70,7 +84,6 @@ void Rocket::step(){
     this->recomputeCentreMass();
     this->recomputeInertiaTensor();
   }
-
 }
 
 void Rocket::print(){

@@ -7,6 +7,7 @@ int main(){
   rocket.print();
   /* run for 100 seconds */
   for(int i = 0; i < 1000; ++i){
+    printf("step: %d\n",i);
     rocket.step();
   }
   rocket.print();

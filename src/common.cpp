@@ -27,7 +27,7 @@ void cross_product(const gsl_vector *u, const gsl_vector *v, gsl_vector *product
   gsl_vector_set(product, 2, p3);
 }
 
-void rotation_matrix(gsl_matrix *matrix,double theta,rotation_axis_t axis){
+void create_rotation_matrix(gsl_matrix *matrix,double theta,rotation_axis_t axis){
   double r[9];
   memset(r,0,sizeof(double)*9);
   const double sintheta = sin(theta);

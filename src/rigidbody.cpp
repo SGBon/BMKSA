@@ -141,6 +141,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector_free(force);
   gsl_vector_free(torque);
   gsl_vector_free(body_orientation);
+
   return GSL_SUCCESS;
 }
 
@@ -169,12 +170,12 @@ RigidBody::RigidBody(const double mass, const double time):
     ode_system->params = this;
 
     this->ode_driver = gsl_odeiv2_driver_alloc_y_new(ode_system, gsl_odeiv2_step_rkf45,
-      0.01, 1e-6, 0.0);
+      0.1, 1e-6, 0.0);
   }
 
 RigidBody::~RigidBody(){
   gsl_vector_free(this->state);
-  gsl_vector_free(thrust_direction);
+  gsl_vector_free(this->thrust_direction);
   gsl_matrix_free(this->inertia_tensor);
 
   gsl_odeiv2_driver_free(this->ode_driver);
@@ -198,7 +199,8 @@ gsl_matrix *RigidBody::star(gsl_vector *vector){
 }
 
 void RigidBody::update(const double dt){
-  gsl_odeiv2_driver_apply(this->ode_driver,&this->time,this->time + dt,this->state->data);
+  const int code = gsl_odeiv2_driver_apply(this->ode_driver,&this->time,this->time + dt,this->state->data);
+  nop();
 }
 
 gsl_matrix *RigidBody::getInertiaTensor(){
@@ -210,6 +212,7 @@ gsl_vector *RigidBody::getThrustDirection(){
 }
 
 void RigidBody::setThrustDirection(double direction[]){
+  gsl_odeiv2_driver_reset(this->ode_driver);
   memcpy(this->thrust_direction->data,direction,3*sizeof(double));
 }
 
