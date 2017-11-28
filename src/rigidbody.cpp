@@ -209,6 +209,10 @@ gsl_vector *RigidBody::getThrustDirection(){
   return this->thrust_direction;
 }
 
+void RigidBody::setThrustDirection(double direction[]){
+  memcpy(this->thrust_direction->data,direction,3*sizeof(double));
+}
+
 void RigidBody::updateInertiaTensor(double inertia_tensor[]){
   memcpy(this->inertia_tensor->data,inertia_tensor,9*sizeof(double));
 }

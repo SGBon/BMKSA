@@ -22,6 +22,13 @@ private:
 
   const double radius;
 
+  enum stage_progress{
+    S1LAUNCH,
+    S1ASCENT,
+    S2SPLIT,
+    S2BURN
+  } stage_progress;
+
   double target_orbital_velocity;
 
   void recomputeInertiaTensor();

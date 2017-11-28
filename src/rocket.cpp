@@ -56,6 +56,10 @@ void Rocket::step(){
     if(fuel_in_stage <= 0.0){
       this->nextstage();
     }
+    if(this->rigid_body.getTime() > 20.0 && stage_progress == S1LAUNCH){
+      stage_progress = S1ASCENT;
+      
+    }
   }else if (stage == 2){
     fuel_in_stage = this->rigid_body.getMass() - stage_mass_empty[2];
     if(fuel_in_stage <= 0.0){

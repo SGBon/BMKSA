@@ -26,6 +26,8 @@ public:
 
   gsl_vector *getThrustDirection();
 
+  void setThrustDirection(double direction[]);
+
   void updateInertiaTensor(double inertia_tensor[]);
 
   double getMass();

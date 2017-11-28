@@ -1,7 +1,8 @@
 #ifndef RSIM_COMMON_HPP
 #define RSIM_COMMON_HPP
 /* common functions and definitions in RocketSim */
-#include  <gsl/gsl_vector.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
 
 const double gravitiational_constant = 6.67408e-11;
 
@@ -21,6 +22,8 @@ const double identity[9] =
               0,1,0,
               0,0,1};
 
+const double y_up[3] = {0,1,0};
+
 /* normalize a value between min and max */
 double normalize(double x, double min, double max);
 
@@ -28,5 +31,13 @@ double normalize(double x, double min, double max);
 double orbital_velocity(double mass, double radius);
 
 void cross_product(const gsl_vector *u, const gsl_vector *v, gsl_vector *product);
+
+enum rotation_axis_t{
+  ROTATION_AXIS_X,
+  ROTATION_AXIS_Y,
+  ROTATION_AXIS_Z
+};
+
+void rotation_matrix(gsl_matrix *matrix,double theta,rotation_axis_t axis);
 
 #endif
