@@ -149,8 +149,8 @@ void onDisplay(void) {
         , sin(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
         , cos(CAMERA_COLATITUDE)));
     std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
-    glm::vec3 center(0.0f,0,0.0f);
-    glm::vec3 up(0.0f,0.0,1.0);
+    glm::vec3 center(0.0f,0,3.5f);
+    glm::vec3 up(0.0f,0.0,-1.0);
     glm::mat4 view(glm::lookAt(eye, center, up));
     glm::mat4 projection(PROJECTION);
 
@@ -229,7 +229,7 @@ void onIdle() {
 
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // load payload
-    RSimView::MeshData payload_mesh = RSimView::cubeMeshData();
+    RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
 
     // figure out window size
     int width = 640;

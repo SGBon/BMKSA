@@ -3,6 +3,7 @@
 
 namespace RSimView {
 const char* VPOSITION = "vPosition";
+const char* VNORMAL = "vNormal";
 
 
 VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
@@ -14,30 +15,32 @@ VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
     glBindVertexArray(vao.id);
 
     // figure out sizes
-    std::cout << "figure out size" << std::endl;
     size_t position_buffer_size = data.vertex_length*sizeof(FloatT);
+    size_t normal_buffer_size = position_buffer_size;
     size_t index_buffer_size = data.index_count*sizeof(IndexT);
     
     // generate vertex buffer
-    std::cout << "generate vertex buffer" << std::endl;
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, position_buffer_size, NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, position_buffer_size+normal_buffer_size, NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, position_buffer_size, data.vertices);
+    glBufferSubData(GL_ARRAY_BUFFER, position_buffer_size, normal_buffer_size, data.normals);
 
     // link up to program
-    std::cout << "use program" << std::endl;
     glUseProgram(program);
 
     // vertex position
-    std::cout << "position" << std::endl;
     GLint vPosition = glGetAttribLocation(program, VPOSITION);
     glVertexAttribPointer(vPosition, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(vPosition);
 
+    // vertex normal
+    GLint vNormal= glGetAttribLocation(program, VNORMAL);
+    glVertexAttribPointer(vNormal, 3, GL_FLOAT, GL_FALSE, 0, (void*)position_buffer_size);
+    glEnableVertexAttribArray(vNormal);
+
     //  indices
-    std::cout << "indices" << std::endl;
     GLuint index_buffer;
     glGenBuffers(1, &index_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
@@ -45,8 +48,6 @@ VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
         , data.indices, GL_STATIC_DRAW);
     
     // done
-
-    std::cout << "done with vao" << std::endl;
     return vao;
 }
 } // namespace RSimView
