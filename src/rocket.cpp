@@ -7,6 +7,7 @@
 #include <gsl/gsl_blas.h>
 
 #include "common.hpp"
+#include "earth.hpp"
 
 /* dimensions of each stage, stage 0 represents when all stages are part of the
  * rocket (ie. the total), stage n is the value of that stage itself
@@ -40,7 +41,7 @@ Rocket::Rocket(const double dt):
     inertia_tensor_s2[8] = m2*radius*radius/2;
     recomputeInertiaTensor();
 
-    target_orbital_velocity = orbital_velocity(rigid_body.earth.mass,rigid_body.earth.radius+LEO);
+    target_orbital_velocity = orbital_velocity(earth.mass,earth.radius+LEO);
   }
 
 Rocket::~Rocket(){
@@ -65,6 +66,7 @@ void Rocket::step(){
     this->recomputeCentreMass();
     this->recomputeInertiaTensor();
   }
+
 }
 
 void Rocket::print(){
@@ -192,6 +194,7 @@ void Rocket::recomputeCentreMass(){
     this->centre_of_mass[1] = payload_height/2.0;
     this->centre_of_mass[2] = radius;
   }
+  rigid_body.setCentreOfMass(this->centre_of_mass);
 }
 
 void Rocket::nextstage(){

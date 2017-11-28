@@ -6,8 +6,6 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv2.h>
 
-#include "earth.hpp"
-
 class RigidBody{
 public:
   RigidBody(const double mass, const double time);
@@ -42,16 +40,19 @@ public:
   /* make changes for stage 2 */
   void nextstage(double newmass);
 
-  Earth earth;
-
   bool vac_thruster = false;
 
   double getTime();
+
+  void setCentreOfMass(double com[]);
+
+  double *getCentreOfMass();
 
 private:
   double time;
   double mass_flow; /* consumption of fuel in kg/s */
   double max_flow;
+  double centre_of_mass[3];
   gsl_vector *state;
   gsl_vector *thrust_direction;
   gsl_matrix *inertia_tensor;

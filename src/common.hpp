@@ -1,6 +1,8 @@
 #ifndef RSIM_COMMON_HPP
 #define RSIM_COMMON_HPP
 /* common functions and definitions in RocketSim */
+#include  <gsl/gsl_vector.h>
+
 const double gravitiational_constant = 6.67408e-11;
 
 const double max_ISP = 307.4; /* specific impulse in vacuum of stage 1 engine */
@@ -24,5 +26,7 @@ double normalize(double x, double min, double max);
 
 /* get the velocity necessary to orbit at a certain radius from a planet's core */
 double orbital_velocity(double mass, double radius);
+
+void cross_product(const gsl_vector *u, const gsl_vector *v, gsl_vector *product);
 
 #endif

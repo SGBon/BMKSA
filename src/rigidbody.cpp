@@ -8,14 +8,18 @@
 #include <gsl/gsl_blas.h>
 
 #include "common.hpp"
+#include "earth.hpp"
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody *rigidbody = (RigidBody *) params;
   int s = 0;
   double dm = rigidbody->getMassFlow(); /* loss of mass due to fuel */
-  gsl_vector *direction = gsl_vector_alloc(3);
+  const double origin[3] = {0,0,0};
+  gsl_vector_const_view origin_view = gsl_vector_const_view_array(origin,3);
+  gsl_vector *thrust_direction = gsl_vector_alloc(3);
   gsl_vector *force = gsl_vector_calloc(3);
   gsl_vector *torque = gsl_vector_calloc(3);
+  gsl_vector *body_orientation = gsl_vector_calloc(3);
 
   /* inertia inversion data */
   gsl_matrix *inertia_copy = gsl_matrix_calloc(3,3);
@@ -34,29 +38,27 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
 
   /* compute force from the combination of gravity, drag, lift, thrust */
   /* gravity */
-  double dist;
   gsl_vector *gdir = gsl_vector_calloc(3); /* gravity direction */
-  gsl_vector_const_view earthpos = gsl_vector_const_view_array(rigidbody->earth.position,3);
+  gsl_vector_const_view earthpos = gsl_vector_const_view_array(earth.position,3);
   gsl_vector_const_view rocketpos = gsl_vector_const_view_array(y,3);
 
   gsl_vector_add(gdir,&earthpos.vector);
   gsl_vector_sub(gdir,&rocketpos.vector);
-  dist = gsl_blas_dnrm2(gdir);
+  const double dist = gsl_blas_dnrm2(gdir);
 
-  const double gforce = gravitiational_constant*y[19]*rigidbody->earth.mass/(dist*dist);
+  const double gforce = gravitiational_constant*y[19]*earth.mass/(dist*dist);
   gsl_vector_scale(gdir,gforce/dist);
 
-  gsl_vector_add(force,gdir);
-  gsl_vector_free(gdir);
+  /* add force of gravity after torque */
 
   /* thrust */
-  memcpy(direction->data,rigidbody->getThrustDirection()->data,3*sizeof(double));
   double Isp;
+  gsl_vector_memcpy(thrust_direction,rigidbody->getThrustDirection());
   if(rigidbody->vac_thruster){
     /* specific impulse based on distance from sealevel
      * the karman line begins at 100km
      */
-    Isp = normalize(dist - rigidbody->earth.radius,0.0,100000.0);
+    Isp = normalize(dist - earth.radius,0.0,100000.0);
     /* clamp range */
     if(Isp < 0){
       Isp = 0;
@@ -69,18 +71,43 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
     Isp = merlinvac_isp;
   }
   const double thrust = -9.81*dm*Isp;
-  gsl_vector_scale(direction,thrust);
-  gsl_vector_add(force,direction);
-  gsl_vector_free(direction);
+  gsl_vector_scale(thrust_direction,thrust);
+  gsl_vector_add(force,thrust_direction);
+  gsl_vector_free(thrust_direction);
+
+  /* compute torque from thrust */
+  double lever[3];
+  double orientation[3];
+  gsl_vector_const_view com = gsl_vector_const_view_array(rigidbody->getCentreOfMass(),3);
+  gsl_vector_view ori_view = gsl_vector_view_array(orientation,3);
+  gsl_vector_view lev_view = gsl_vector_view_array(lever,3);
+  gsl_matrix_const_view r_view = gsl_matrix_const_view_array(&y[3],3,3);
+
+  /* at this point orientation is just the base of the rocket */
+  orientation[0] = com.vector.data[0];
+  orientation[2] = com.vector.data[2];
+
+  /* get orientation of rocket */
+  gsl_vector_sub(&ori_view.vector,&com.vector);
+  gsl_blas_dgemv(CblasNoTrans,1.0,&r_view.matrix,&ori_view.vector,0.0,&lev_view.vector);
+  cross_product(&lev_view.vector,force,torque);
+
+  /* get orientation vector of rocket, scoping the variables */
+  {
+    gsl_vector_sub(body_orientation,&lev_view.vector);
+    const double bonrm = gsl_blas_dnrm2(body_orientation);
+    gsl_vector_scale(body_orientation,1.0/bonrm);
+  }
+
+  /* add force of gravity after torque */
+  gsl_vector_add(force,gdir);
+  gsl_vector_free(gdir);
 
   /* TODO: drag */
 
   /* TODO: lift */
 
-  /* compute torque from force */
-
   /* compute dr/dt TODO: turn these into matrix views on stack arrays */
-  gsl_matrix_const_view r_view = gsl_matrix_const_view_array(&y[3],3,3);
   const gsl_matrix *rotation = &r_view.matrix;
   gsl_matrix *product = gsl_matrix_alloc(3,3);
   gsl_matrix *Iinv = gsl_matrix_alloc(3,3);
@@ -113,6 +140,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_matrix_free(product);
   gsl_vector_free(force);
   gsl_vector_free(torque);
+  gsl_vector_free(body_orientation);
   return GSL_SUCCESS;
 }
 
@@ -219,4 +247,12 @@ void RigidBody::nextstage(double newmass){
 
 double RigidBody::getTime(){
   return this->time;
+}
+
+void RigidBody::setCentreOfMass(double com[]){
+  memcpy(this->centre_of_mass,com,3*sizeof(double));
+}
+
+double *RigidBody::getCentreOfMass(){
+  return this->centre_of_mass;
 }
