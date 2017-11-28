@@ -2,6 +2,7 @@
 #define RSIM_ROCKET_HPP
 /* rocket class based on the SpaceX Falcon 9 */
 #include "rigidbody.hpp"
+#include <glm/glm.hpp>
 
 class Rocket{
 public:
@@ -11,6 +12,10 @@ public:
   void step();
 
   void print();
+
+  glm::vec4 getPositionGLM();
+
+  glm::vec4 getThrustDirectionGLM();
 
 private:
   unsigned int stage; /* stage rocket is on */

@@ -50,6 +50,8 @@ public:
 
   double *getCentreOfMass();
 
+  gsl_vector *getState();
+
 private:
   double time;
   double mass_flow; /* consumption of fuel in kg/s */

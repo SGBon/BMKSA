@@ -21,19 +21,6 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector *torque = gsl_vector_calloc(3);
   gsl_vector *body_orientation = gsl_vector_calloc(3);
 
-  /* inertia inversion data */
-  gsl_matrix *inertia_copy = gsl_matrix_calloc(3,3);
-  gsl_matrix *inertia_inverse = gsl_matrix_calloc(3,3);
-  gsl_permutation *p = gsl_permutation_alloc(3);
-  gsl_matrix_memcpy(inertia_copy,rigidbody->getInertiaTensor());
-
-  /* compute inverse of inertia tensor */
-  gsl_linalg_LU_decomp(inertia_copy,p,&s);
-  gsl_linalg_LU_invert(inertia_copy,p,inertia_inverse);
-
-  gsl_permutation_free(p);
-  gsl_matrix_free(inertia_copy);
-
   memset(dydt,0,20*sizeof(double));
 
   /* compute force from the combination of gravity, drag, lift, thrust */
@@ -113,11 +100,19 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_matrix *Iinv = gsl_matrix_alloc(3,3);
   gsl_vector *w = gsl_vector_alloc(3);
 
-  gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, inertia_inverse, rotation, 0.0, product);
+  gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, rigidbody->getInertiaTensor(), rotation, 0.0, product);
   gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, rotation, product, 0.0, Iinv);
 
   gsl_vector_const_view angular_momentum = gsl_vector_const_view_array(&y[15],3);
-  gsl_blas_dgemv(CblasNoTrans,1.0,Iinv,&angular_momentum.vector,0.0,w);
+
+  /* inertia inversion data */
+  gsl_permutation *p = gsl_permutation_alloc(3);
+
+  /* compute inverse of inertia tensor */
+  gsl_linalg_LU_decomp(Iinv,p,&s);
+  gsl_linalg_LU_solve(Iinv,p,&angular_momentum.vector,w);
+
+  gsl_permutation_free(p);
 
   gsl_matrix *w_star = RigidBody::star(w);
 
@@ -126,7 +121,6 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector_free(w);
   gsl_matrix_free(Iinv);
   gsl_matrix_free(w_star);
-  gsl_matrix_free(inertia_inverse);
 
   /* set dx/dt as velocity (P/m) */
   for(int i = 0; i < 3; ++i){
@@ -171,6 +165,7 @@ RigidBody::RigidBody(const double mass, const double time):
 
     this->ode_driver = gsl_odeiv2_driver_alloc_y_new(ode_system, gsl_odeiv2_step_rkf45,
       0.1, 1e-6, 0.0);
+    gsl_odeiv2_driver_set_hmax(this->ode_driver,10);
   }
 
 RigidBody::~RigidBody(){
@@ -262,4 +257,8 @@ void RigidBody::setCentreOfMass(double com[]){
 
 double *RigidBody::getCentreOfMass(){
   return this->centre_of_mass;
+}
+
+gsl_vector *RigidBody::getState(){
+  return this->state;
 }
