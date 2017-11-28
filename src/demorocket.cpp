@@ -39,7 +39,7 @@ static glm::mat4 ROTATION_MATRIX;
 // updates rocket VAO to reflect changes
 void updateView(double height, glm::vec3 thrust_direction, int stage) {
     double max_height = 112*1e3;
-    glm::vec3 ground_color(135.0/255, 211.0/255, 1.0);
+    glm::vec3 ground_color(205.0/255, 111.0/255, 1.0);
     glm::vec3 space_color(33.0/255, 27.0/255, 53.0/255);
     ROTATION_MATRIX = glm::orientation(thrust_direction, glm::vec3(0,0,-1));
     //std::cout << "updateView" << std::endl;
@@ -169,7 +169,7 @@ void onDisplay(void) {
         cos(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
         , sin(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
         , cos(CAMERA_COLATITUDE)));
-    std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
+    //std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
     glm::vec3 center(0.0f,0,20.0f);
     glm::vec3 up(0.0f,0.0,-1.0);
     glm::mat4 view(glm::lookAt(eye, center, up));
@@ -238,27 +238,28 @@ void onOtherKeyEvent(int key, int mouseX, int mouseY) {
     
     CAMERA_COLATITUDE = fmin(0.999*pi, fmax(0.001, CAMERA_COLATITUDE+dCol));
     CAMERA_LONGITUDE = fmin(1.999*pi, fmax(0, CAMERA_LONGITUDE+dLong));
-    std::cout << "long " << CAMERA_LONGITUDE<< ", colat " << CAMERA_COLATITUDE << std::endl;
     glutPostRedisplay();
     
 }
 
 void onIdle() {
-    if(ROCKET_ITER >= 1000) {
+    static const int max_iter = 100;
+    if(ROCKET_ITER >= max_iter) {
         // don't do anything
         return;
     }
-    printf("onIdle: step %d\n", ROCKET_ITER);
-    //ROCKET_MODEL->step();
+    ROCKET_MODEL->step();
     // TODO: get values from rocket
-    double height = 112*ROCKET_ITER;//placeholder
-    glm::vec3 thrust_direction(5*sin(ROCKET_ITER),0,-1);
+    double height = ROCKET_MODEL->getPositionGLM().y;
+    glm::vec4 thrust_direction_vec4(ROCKET_MODEL->getThrustDirectionGLM());
+    glm::vec3 thrust_direction(thrust_direction_vec4.x,1.0,-thrust_direction_vec4.y);
     int stage = 0;
+    printf("onIdle: step %d height %f rotation %f, %f, %f, %f\n", ROCKET_ITER, height, thrust_direction_vec4.x, thrust_direction_vec4.y, thrust_direction_vec4.z, thrust_direction_vec4.w);
     updateView(height, thrust_direction, stage);
     ROCKET_ITER++;
 
     // stop after 100 seconds
-    if(ROCKET_ITER == 1000) {
+    if(ROCKET_ITER == max_iter) {
         printf("done\n");
         //exit(0);
     }
