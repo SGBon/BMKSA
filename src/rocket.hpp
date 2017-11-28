@@ -12,6 +12,8 @@ public:
 
   void print();
 
+  
+
 private:
   unsigned int stage; /* stage rocket is on */
   const double dt;

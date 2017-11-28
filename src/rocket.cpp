@@ -68,7 +68,7 @@ void Rocket::step(){
       gsl_matrix *rotation = gsl_matrix_alloc(3,3);
       gsl_vector_view o_view = gsl_vector_view_array(orientation,3);
       gsl_vector_const_view yupview = gsl_vector_const_view_array(y_up,3);
-      create_rotation_matrix(rotation,-M_PI/4,ROTATION_AXIS_Z);
+      create_rotation_matrix(rotation,-M_PI/32,ROTATION_AXIS_Z);
       gsl_blas_dgemv(CblasNoTrans,1.0,rotation,&yupview.vector,0.0,&o_view.vector);
 
       rigid_body.setThrustDirection(orientation);

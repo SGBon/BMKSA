@@ -3,11 +3,10 @@
 #include "rocket.hpp"
 
 int main(){
-  Rocket rocket(0.1);
+  Rocket rocket(0.01);
   rocket.print();
   /* run for 100 seconds */
-  for(int i = 0; i < 1000; ++i){
-    printf("step: %d\n",i);
+  for(int i = 0; i < 200000; ++i){
     rocket.step();
   }
   rocket.print();
