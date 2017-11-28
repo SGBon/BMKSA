@@ -1,8 +1,9 @@
 /**
 * Parts of this code are based on material provided in UOIT Graphics courses.
 **/
-
 #include "demorocket.hpp"
+
+
 
 // STD
 #include <iostream>
@@ -15,6 +16,11 @@
 #include <GL/gl.h>
 #include <GL/freeglut_ext.h>
 
+// GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 // project
 #include "meshdata.hpp"
 #include "vao.hpp"
@@ -22,6 +28,8 @@
 // global values
 static const std::string FRAGMENT_SHADER_PATH = "../render.fs";
 static const std::string VERTEX_SHADER_PATH = "../render.vs";
+static const char* UMODELVIEW = "uModelView";
+static const char* UPROJECTION = "uProjection";
 static std::vector<RSimView::VertexArrayObject> VAO_LIST;
 
 // read in that shader file guy
@@ -126,10 +134,41 @@ int buildProgram(int vs, int fs) {
 }
 
 namespace window {
+glm::mat4 PROJECTION;
+float CAMERA_LONGITUDE, CAMERA_COLATITUDE, CAMERA_RADIUS;
+
+void updateProjection(int width, int height) {
+    float ratio = 1.0f * width / height;
+    PROJECTION = glm::perspective(45.0f, ratio, 0.5f, 100.0f);
+}
+
 void onDisplay(void) {
+    // create view
+    glm::vec3 eye(CAMERA_RADIUS*glm::vec3(
+        cos(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
+        , sin(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
+        , cos(CAMERA_COLATITUDE)));
+    std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
+    glm::vec3 center(0.0f,0,0.0f);
+    glm::vec3 up(0.0f,0.0,1.0);
+    glm::mat4 view(glm::lookAt(eye, center, up));
+    glm::mat4 projection(PROJECTION);
+
+    // draw stuff
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for(RSimView::VertexArrayObject vao : VAO_LIST) {
+        // here's the program we're using
         glUseProgram(vao.program);
+
+        // get uniforms
+        int uModelView = glGetUniformLocation(vao.program, UMODELVIEW);
+        int uProjection = glGetUniformLocation(vao.program, UPROJECTION);
+        
+        // set uniforms
+        glUniformMatrix4fv(uModelView, 1, 0, glm::value_ptr(view));
+        glUniformMatrix4fv(uProjection, 1, 0, glm::value_ptr(projection));
+
+        // draw it
         glBindVertexArray(vao.id);
         glDrawElements(GL_TRIANGLES, vao.index_count, GL_UNSIGNED_INT, NULL);
     }
@@ -138,6 +177,7 @@ void onDisplay(void) {
 
 void onReshape(int width, int height) {
     glViewport(0,0,width,height);
+    updateProjection(width, height);
 }
 
 void onVisibilityChange(int state) {
@@ -148,7 +188,37 @@ void onCharacterKeyEvent(unsigned char key, int mouseX, int mouseY) {
 }
 
 void onOtherKeyEvent(int key, int mouseX, int mouseY) {
-    //,,,
+    double dCol = 0.0;
+    double dLong = 0.0;
+    double step = 0.1;
+    double pi = asin(1.0)*2;
+
+    switch(key) {
+        case GLUT_KEY_UP:
+            dCol += step;
+            break;
+
+        case GLUT_KEY_DOWN:
+            dCol -= step;
+            break;
+
+        case GLUT_KEY_RIGHT:
+            dLong += step;
+            break;
+
+        case GLUT_KEY_LEFT:
+            dLong -= step;
+            break;
+
+        default:
+            break;
+    }
+    
+    CAMERA_COLATITUDE = fmin(0.999*pi, fmax(0.001, CAMERA_COLATITUDE+dCol));
+    CAMERA_LONGITUDE = fmin(1.999*pi, fmax(0, CAMERA_LONGITUDE+dLong));
+    std::cout << "long " << CAMERA_LONGITUDE<< ", colat " << CAMERA_COLATITUDE << std::endl;
+    glutPostRedisplay();
+    
 }
 
 void onIdle() {
@@ -159,15 +229,25 @@ void onIdle() {
 
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // load payload
-    RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
+    RSimView::MeshData payload_mesh = RSimView::cubeMeshData();
+
+    // figure out window size
+    int width = 640;
+    int height = 640;
 
     // setup glut
     std::cout << "Initializing window" << std::endl;
     glutInit(argc, argv);
     glutInitContextVersion(3,3);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(640,640);
+    glutInitWindowSize(width,height);
+    window::updateProjection(width, height);
+    window::CAMERA_COLATITUDE = asin(1.0);
+    window::CAMERA_LONGITUDE = 0;
+    window::CAMERA_RADIUS = 10;
     glutCreateWindow("Rocket Science");
+
+
 
     // check for error
     glewExperimental = true;
@@ -195,7 +275,8 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
         std::cerr << "error occured loading program" << std::endl;
     }
 
-    RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(payload_mesh, program);
+    RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(
+        payload_mesh, program);
     VAO_LIST.push_back(payload_vao);
 
     // hookup glut functions

@@ -36,6 +36,9 @@ MeshData payloadMeshData();
 /// Build the vertices and such for a rocket
 MeshData rocketMeshData();
 
+/// Build the vertices and such for a cube
+MeshData cubeMeshData();
+
 } // namespace RSimView
 
 

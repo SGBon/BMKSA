@@ -1,6 +1,41 @@
 #include "meshdata.hpp"
 
 namespace RSimView {
+// Cube stuff
+static const SizeT CUBE_VERTEX_COUNT = 8;
+static const SizeT CUBE_FACE_COUNT = 6*2;
+static const SizeT CUBE_VERTEX_LENGTH = CUBE_VERTEX_COUNT*3;
+static const SizeT CUBE_FACE_LENGTH = CUBE_FACE_COUNT*3;
+
+static FloatT CUBE_VERTICES[CUBE_VERTEX_LENGTH] =
+    {  1,  1,  1
+    ,  1, -1,  1
+    , -1, -1,  1
+    , -1,  1,  1
+    ,  1,  1, -1
+    ,  1, -1, -1
+    , -1, -1, -1
+    , -1,  1, -1
+    };
+
+
+static FloatT CUBE_NORMALS[CUBE_VERTEX_LENGTH];
+
+static IndexT CUBE_INDICES[CUBE_FACE_LENGTH] = 
+    { 0, 1, 3
+    , 3, 1, 2
+    , 0, 4, 5
+    , 0, 5, 1
+    , 1, 5, 6
+    , 6, 2, 1
+    , 3, 2, 6
+    , 3, 6, 7
+    , 0, 3, 4
+    , 3, 7, 4
+    };
+
+
+// payload stuff
 static const SizeT PAYLOAD_VERTEX_COUNT = 9;
 static const SizeT PAYLOAD_FACE_COUNT = 8;
 static const SizeT PAYLOAD_VERTEX_LENGTH = PAYLOAD_VERTEX_COUNT*3;
@@ -47,6 +82,10 @@ MeshData::MeshData(FloatT* pvertices, FloatT* pnormals, SizeT pvertex_length, In
 
 MeshData payloadMeshData() {
     return MeshData(PAYLOAD_VERTICES, PAYLOAD_NORMALS, PAYLOAD_VERTEX_LENGTH, PAYLOAD_INDICES, PAYLOAD_FACE_LENGTH);
+}
+
+MeshData cubeMeshData() {
+    return MeshData(CUBE_VERTICES, CUBE_NORMALS, CUBE_VERTEX_LENGTH, CUBE_INDICES, CUBE_FACE_LENGTH);
 }
 
 } // namespace RSimView

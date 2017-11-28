@@ -7,13 +7,10 @@ const char* VPOSITION = "vPosition";
 
 VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
     // generate vertex array
-    std::cout << "generate vertex array" << std::endl;
     VertexArrayObject vao;
     vao.program = program;
     vao.index_count = data.index_count;
-    std::cout << "\tgen em" << std::endl;
     glGenVertexArrays(1, &vao.id);
-    std::cout << "\tbind em" << std::endl;
     glBindVertexArray(vao.id);
 
     // figure out sizes
@@ -27,6 +24,7 @@ VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, position_buffer_size, NULL, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, position_buffer_size, data.vertices);
 
     // link up to program
     std::cout << "use program" << std::endl;

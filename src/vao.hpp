@@ -14,7 +14,6 @@ public:
     GLuint id; // vao index
 };
 
-
 VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program);
 
 } // namespace RSimView
