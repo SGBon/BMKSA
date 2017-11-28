@@ -62,17 +62,17 @@ void Rocket::step(){
       this->nextstage();
     }
     if(this->rigid_body.getTime() > 20.0 && stage_progress == S1LAUNCH){
-      stage_progress = S1ASCENT;
+      //stage_progress = S1ASCENT;
       /* start thrusting towards orbit line to prepare rocket orientation in stage 2 */
-      double orientation[3];
-      gsl_matrix *rotation = gsl_matrix_alloc(3,3);
-      gsl_vector_view o_view = gsl_vector_view_array(orientation,3);
-      gsl_vector_const_view yupview = gsl_vector_const_view_array(y_up,3);
-      create_rotation_matrix(rotation,-M_PI/32,ROTATION_AXIS_Z);
-      gsl_blas_dgemv(CblasNoTrans,1.0,rotation,&yupview.vector,0.0,&o_view.vector);
+      //double orientation[3];
+      //gsl_matrix *rotation = gsl_matrix_alloc(3,3);
+      //gsl_vector_view o_view = gsl_vector_view_array(orientation,3);
+      //gsl_vector_const_view yupview = gsl_vector_const_view_array(y_up,3);
+      //create_rotation_matrix(rotation,-M_PI/32,ROTATION_AXIS_Z);
+      //gsl_blas_dgemv(CblasNoTrans,1.0,rotation,&yupview.vector,0.0,&o_view.vector);
 
-      rigid_body.setThrustDirection(orientation);
-      gsl_matrix_free(rotation);
+      //rigid_body.setThrustDirection(orientation);
+      //gsl_matrix_free(rotation);
     }
   }else if (stage == 2){
     fuel_in_stage = this->rigid_body.getMass() - stage_mass_empty[2];

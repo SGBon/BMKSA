@@ -243,13 +243,13 @@ void onOtherKeyEvent(int key, int mouseX, int mouseY) {
 }
 
 void onIdle() {
-    static const int max_iter = 100;
+    static const int max_iter = 100000;
+    static const double max_height = 480*1e3;
     if(ROCKET_ITER >= max_iter) {
         // don't do anything
         return;
     }
     ROCKET_MODEL->step();
-    // TODO: get values from rocket
     double height = ROCKET_MODEL->getPositionGLM().y;
     glm::vec4 thrust_direction_vec4(ROCKET_MODEL->getThrustDirectionGLM());
     glm::vec3 thrust_direction(thrust_direction_vec4.x,1.0,-thrust_direction_vec4.y);
@@ -259,9 +259,9 @@ void onIdle() {
     ROCKET_ITER++;
 
     // stop after 100 seconds
-    if(ROCKET_ITER == max_iter) {
+    if(ROCKET_ITER == max_iter || height >= max_height) {
         printf("done\n");
-        //exit(0);
+        exit(0);
     }
 }
 
