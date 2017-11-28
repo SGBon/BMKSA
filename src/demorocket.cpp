@@ -31,6 +31,24 @@ static const std::string VERTEX_SHADER_PATH = "../render.vs";
 static const char* UMODELVIEW = "uModelView";
 static const char* UPROJECTION = "uProjection";
 static std::vector<RSimView::VertexArrayObject> VAO_LIST;
+static Rocket* ROCKET_MODEL = NULL;
+static int ROCKET_ITER = 0; 
+
+// updates rocket VAO to reflect changes
+void updateView(double height, glm::vec3 thrust_direction, int stage) {
+    double max_height = 112*1e3;
+    glm::vec3 ground_color(135.0/255, 211.0/255, 1.0);
+    glm::vec3 space_color(33.0/255, 27.0/255, 53.0/255);
+    //std::cout << "updateView" << std::endl;
+
+    float percent_up = fmin(max_height, height)/max_height;
+    glm::vec3 clear_color = (1-percent_up)*ground_color + percent_up*space_color;
+    //printf("height %f percent %f\n", height, percent_up);
+
+
+    glClearColor(clear_color.x,clear_color.y,clear_color.z,1.0);
+    glutPostRedisplay();
+}
 
 // read in that shader file guy
 std::string readShaderFile(const std::string& filename) {
@@ -222,7 +240,24 @@ void onOtherKeyEvent(int key, int mouseX, int mouseY) {
 }
 
 void onIdle() {
-    //...
+    if(ROCKET_ITER >= 1000) {
+        // don't do anything
+        return;
+    }
+    printf("onIdle: step %d\n", ROCKET_ITER);
+    //ROCKET_MODEL->step();
+    // TODO: get values from rocket
+    double height = 112*ROCKET_ITER;//placeholder
+    glm::vec3 thrust_direction;
+    int stage = 0;
+    updateView(height, thrust_direction, stage);
+    ROCKET_ITER++;
+
+    // stop after 100 seconds
+    if(ROCKET_ITER == 1000) {
+        printf("done\n");
+        //exit(0);
+    }
 }
 
 } // namespace window
@@ -231,6 +266,9 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // load payload
     RSimView::MeshData rocket_mesh = RSimView::rocketMeshData();
     RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
+
+    // set pointer
+    ROCKET_MODEL = &rocket;
 
     // figure out window size
     int width = 640;
