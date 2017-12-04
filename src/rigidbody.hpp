@@ -22,9 +22,9 @@ public:
   /* 20 state variables */
   static const unsigned int STATE_SIZE = 20;
 
-  gsl_matrix *getInertiaTensor();
+  gsl_matrix const *getInertiaTensor() const;
 
-  gsl_vector *getThrustDirection();
+  gsl_vector const *getThrustDirection() const;
 
   void setThrustDirection(double direction[]);
 
@@ -37,7 +37,7 @@ public:
   /* set speed and fuel consumption */
   void throttle(double throttle);
 
-  double getMassFlow();
+  double getMassFlow() const;
 
   /* make changes for stage 2 */
   void nextstage(double newmass);
@@ -48,9 +48,9 @@ public:
 
   void setCentreOfMass(double com[]);
 
-  double *getCentreOfMass();
+  double const *getCentreOfMass() const;
 
-  gsl_vector *getState();
+  gsl_vector const *getState() const;
 
 private:
   double time;

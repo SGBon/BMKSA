@@ -13,5 +13,6 @@ int main(int argc, char** argv) {
   rocket.print();
   int ret = demoRocket(rocket, &argc, argv);
   rocket.print();
+
   return 0;
 }

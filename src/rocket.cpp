@@ -91,7 +91,7 @@ void Rocket::print(){
 }
 
 glm::vec4 Rocket::getPositionGLM(){
-  gsl_vector *gslpos = this->rigid_body.getState();
+  gsl_vector const *gslpos = this->rigid_body.getState();
   glm::vec4 glmpos;
   glmpos.x = gslpos->data[0];
   glmpos.y = gslpos->data[1];
@@ -101,7 +101,7 @@ glm::vec4 Rocket::getPositionGLM(){
 }
 
 glm::vec4 Rocket::getThrustDirectionGLM(){
-  gsl_vector *gslthrust = this->rigid_body.getThrustDirection();
+  gsl_vector const *gslthrust = this->rigid_body.getThrustDirection();
   glm::vec4 glmthrust;
   glmthrust.x = gslthrust->data[0];
   glmthrust.y = gslthrust->data[1];

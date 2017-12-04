@@ -11,7 +11,7 @@
 #include "earth.hpp"
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
-  RigidBody *rigidbody = (RigidBody *) params;
+  RigidBody const *rigidbody = (RigidBody *) params;
   int s = 0;
   double dm = rigidbody->getMassFlow(); /* loss of mass due to fuel */
   const double origin[3] = {0,0,0};
@@ -198,21 +198,22 @@ void RigidBody::update(const double dt){
   nop();
 }
 
-gsl_matrix *RigidBody::getInertiaTensor(){
+gsl_matrix const*RigidBody::getInertiaTensor() const {
   return this->inertia_tensor;
 }
 
-gsl_vector *RigidBody::getThrustDirection(){
+gsl_vector const *RigidBody::getThrustDirection() const {
   return this->thrust_direction;
 }
 
 void RigidBody::setThrustDirection(double direction[]){
-  gsl_odeiv2_driver_reset(this->ode_driver);
   memcpy(this->thrust_direction->data,direction,3*sizeof(double));
+  gsl_odeiv2_driver_reset(this->ode_driver);
 }
 
 void RigidBody::updateInertiaTensor(double inertia_tensor[]){
   memcpy(this->inertia_tensor->data,inertia_tensor,9*sizeof(double));
+  gsl_odeiv2_driver_reset(this->ode_driver);
 }
 
 double RigidBody::getMass(){
@@ -234,9 +235,10 @@ void RigidBody::throttle(double throttle){
     throttle = 0;
   }
   mass_flow = throttle*max_flow;
+  gsl_odeiv2_driver_reset(this->ode_driver);
 }
 
-double RigidBody::getMassFlow(){
+double RigidBody::getMassFlow() const {
   return this->mass_flow;
 }
 
@@ -254,12 +256,13 @@ double RigidBody::getTime(){
 
 void RigidBody::setCentreOfMass(double com[]){
   memcpy(this->centre_of_mass,com,3*sizeof(double));
+  gsl_odeiv2_driver_reset(this->ode_driver);
 }
 
-double *RigidBody::getCentreOfMass(){
+double const* RigidBody::getCentreOfMass() const {
   return this->centre_of_mass;
 }
 
-gsl_vector *RigidBody::getState(){
+gsl_vector const *RigidBody::getState() const {
   return this->state;
 }
