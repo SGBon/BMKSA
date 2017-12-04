@@ -270,7 +270,8 @@ void onIdle() {
 
 int demoRocket(Rocket& rocket, int* argc, char** argv) {
     // load payload
-    RSimView::MeshData rocket_mesh = RSimView::rocketMeshData();
+    RSimView::MeshData first_stage_mesh = RSimView::firstStageMeshData();
+    RSimView::MeshData second_stage_mesh = RSimView::secondStageMeshData();
     RSimView::MeshData payload_mesh = RSimView::payloadMeshData();
 
     // set pointer
@@ -320,10 +321,13 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
 
     RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(
         payload_mesh, program);
-    RSimView::VertexArrayObject rocket_vao =RSimView::loadMeshIntoBuffer(
-        rocket_mesh, program);
+    RSimView::VertexArrayObject first_stage_vao =RSimView::loadMeshIntoBuffer(
+        first_stage_mesh, program);
+    RSimView::VertexArrayObject second_stage_vao =RSimView::loadMeshIntoBuffer(
+        second_stage_mesh, program);
     VAO_LIST.push_back(payload_vao);
-    VAO_LIST.push_back(rocket_vao);
+    VAO_LIST.push_back(first_stage_vao);
+    VAO_LIST.push_back(second_stage_vao);
 
     // hookup glut functions
     glutDisplayFunc(window::onDisplay);

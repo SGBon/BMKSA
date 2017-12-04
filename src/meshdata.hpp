@@ -36,6 +36,12 @@ MeshData payloadMeshData();
 /// Build the vertices and such for a rocket
 MeshData rocketMeshData();
 
+/// First stage of rocket mesh
+MeshData firstStageMeshData();
+
+/// Second stage of rocket mesh
+MeshData secondStageMeshData();
+
 /// Build the vertices and such for a cube
 MeshData cubeMeshData();
 
