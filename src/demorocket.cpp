@@ -33,7 +33,7 @@ static const char* UMODELVIEW = "uModelView";
 static const char* UPROJECTION = "uProjection";
 static std::vector<RSimView::VertexArrayObject> VAO_LIST;
 static Rocket* ROCKET_MODEL = NULL;
-static int ROCKET_ITER = 0; 
+static int ROCKET_ITER = 0;
 static glm::mat4 ROTATION_MATRIX;
 
 // updates rocket VAO to reflect changes
@@ -185,7 +185,7 @@ void onDisplay(void) {
         // get uniforms
         int uModelView = glGetUniformLocation(vao.program, UMODELVIEW);
         int uProjection = glGetUniformLocation(vao.program, UPROJECTION);
-        
+
         // set uniforms
         glUniformMatrix4fv(uModelView, 1, 0, glm::value_ptr(modelView));
         glUniformMatrix4fv(uProjection, 1, 0, glm::value_ptr(projection));
@@ -235,16 +235,16 @@ void onOtherKeyEvent(int key, int mouseX, int mouseY) {
         default:
             break;
     }
-    
+
     CAMERA_COLATITUDE = fmin(0.999*pi, fmax(0.001, CAMERA_COLATITUDE+dCol));
     CAMERA_LONGITUDE = fmin(1.999*pi, fmax(0, CAMERA_LONGITUDE+dLong));
     glutPostRedisplay();
-    
+
 }
 
 void onIdle() {
-    static const int max_iter = 100000;
-    static const double max_height = 480*1e3;
+    static const int max_iter = 300000;
+    static const double max_height = 480*1e4;
     if(ROCKET_ITER >= max_iter) {
         // don't do anything
         return;
@@ -254,11 +254,12 @@ void onIdle() {
     glm::vec4 thrust_direction_vec4(ROCKET_MODEL->getThrustDirectionGLM());
     glm::vec3 thrust_direction(thrust_direction_vec4.x,1.0,-thrust_direction_vec4.y);
     int stage = 0;
-    printf("onIdle: step %d height %f rotation %f, %f, %f, %f\n", ROCKET_ITER, height, thrust_direction_vec4.x, thrust_direction_vec4.y, thrust_direction_vec4.z, thrust_direction_vec4.w);
+    //printf("onIdle: step %d height %f rotation %f, %f, %f, %f\n", ROCKET_ITER, height, thrust_direction_vec4.x, thrust_direction_vec4.y, thrust_direction_vec4.z, thrust_direction_vec4.w);
+    ROCKET_MODEL->print();
     updateView(height, thrust_direction, stage);
     ROCKET_ITER++;
 
-    // stop after 100 seconds
+    // stop after 100 secondsd
     if(ROCKET_ITER == max_iter || height >= max_height) {
         printf("done\n");
         exit(0);
@@ -290,8 +291,6 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     window::CAMERA_LONGITUDE = 0;
     window::CAMERA_RADIUS = 50;
     glutCreateWindow("Rocket Science");
-
-
 
     // check for error
     glewExperimental = true;

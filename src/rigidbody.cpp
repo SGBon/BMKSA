@@ -164,8 +164,8 @@ RigidBody::RigidBody(const double mass, const double time):
     ode_system->params = this;
 
     this->ode_driver = gsl_odeiv2_driver_alloc_y_new(ode_system, gsl_odeiv2_step_rkf45,
-      0.1, 1e-6, 0.0);
-    gsl_odeiv2_driver_set_hmax(this->ode_driver,10);
+      0.1, 1e-6, 1e-7);
+    //gsl_odeiv2_driver_set_hmax(this->ode_driver,10);
   }
 
 RigidBody::~RigidBody(){
@@ -245,6 +245,7 @@ void RigidBody::nextstage(double newmass){
   mass_flow = merlinvac_fuel;
   max_flow = mass_flow;
   gsl_vector_set(this->state,19,newmass);
+  gsl_odeiv2_driver_reset(this->ode_driver);
 }
 
 double RigidBody::getTime(){
