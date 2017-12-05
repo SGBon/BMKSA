@@ -11,6 +11,16 @@
 #include "common.hpp"
 #include "earth.hpp"
 
+static const size_t STATE_POSITION_START = 0;
+static const size_t STATE_POSITION_SIZE = 3;
+static const size_t STATE_ROTATION_START = 3;
+static const size_t STATE_ROTATION_SIZE = 9;
+static const size_t STATE_LINEAR_MOMENTUM_START = 12;
+static const size_t STATE_LINEAR_MOMENTUM_SIZE = 3;
+static const size_t STATE_ANGULAR_MOMENTUM_START = 15;
+static const size_t STATE_ANGULAR_MOMENTUM_SIZE = 3;
+static const size_t STATE_MASS = 19;
+
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody const *rigidbody = (RigidBody *) params;
   int s = 0;
@@ -34,7 +44,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector_sub(gdir,&rocketpos.vector);
   const double dist = gsl_blas_dnrm2(gdir);
 
-  const double gforce = gravitiational_constant*y[19]*earth.mass/(dist*dist);
+  const double gforce = gravitiational_constant*y[STATE_MASS]*earth.mass/(dist*dist);
   gsl_vector_scale(gdir,gforce/dist);
 
   /* add force of gravity after torque */
@@ -58,7 +68,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
     /* constant specific impulse of stage 2 thruster */
     Isp = merlinvac_isp;
   }
-  const double thrust = -9.81*dm*Isp;
+  const double thrust = -9.81*dm*Isp; // todo: add more sig digs to gravity? [@Kathryn]
   gsl_vector_scale(thrust_direction,thrust);
   gsl_vector_add(force,thrust_direction);
   gsl_vector_free(thrust_direction);
@@ -69,7 +79,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector_const_view com = gsl_vector_const_view_array(rigidbody->getCentreOfMass(),3);
   gsl_vector_view ori_view = gsl_vector_view_array(orientation,3);
   gsl_vector_view lev_view = gsl_vector_view_array(lever,3);
-  gsl_matrix_const_view r_view = gsl_matrix_const_view_array(&y[3],3,3);
+  gsl_matrix_const_view r_view = gsl_matrix_const_view_array(&y[STATE_ROTATION_START],3,3);
 
   /* at this point orientation is just the base of the rocket */
   orientation[0] = com.vector.data[0];
@@ -104,7 +114,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, rigidbody->getInertiaTensor(), rotation, 0.0, product);
   gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, rotation, product, 0.0, Iinv);
 
-  gsl_vector_const_view angular_momentum = gsl_vector_const_view_array(&y[15],3);
+  gsl_vector_const_view angular_momentum = gsl_vector_const_view_array(&y[STATE_ANGULAR_MOMENTUM_START],STATE_ANGULAR_MOMENTUM_SIZE);
 
   /* inertia inversion data */
   gsl_permutation *p = gsl_permutation_alloc(3);
@@ -124,13 +134,13 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_matrix_free(w_star);
 
   /* set dx/dt as velocity (P/m) */
-  for(int i = 0; i < 3; ++i){
-    dydt[i] = y[12+i]/y[19];
+  for(int i = 0; i < STATE_LINEAR_MOMENTUM_SIZE; ++i){
+    dydt[i] = y[STATE_LINEAR_MOMENTUM_START+i]/y[STATE_MASS];
   }
-  memcpy(&dydt[3],product->data,9*sizeof(double));
-  memcpy(&dydt[12],force->data,3*sizeof(double)); /* set dP/dt as force */
-  memcpy(&dydt[15],torque->data,3*sizeof(double)); /* set dL/dt as torque */
-  dydt[19] = dm;
+  memcpy(&dydt[STATE_ROTATION_START],product->data,STATE_ROTATION_SIZE*sizeof(double));
+  memcpy(&dydt[STATE_LINEAR_MOMENTUM_START],force->data,STATE_LINEAR_MOMENTUM_SIZE*sizeof(double)); /* set dP/dt as force */
+  memcpy(&dydt[STATE_ANGULAR_MOMENTUM_START],torque->data,STATE_ANGULAR_MOMENTUM_SIZE*sizeof(double)); /* set dL/dt as torque */
+  dydt[STATE_MASS] = dm;
 
   gsl_matrix_free(product);
   gsl_vector_free(force);

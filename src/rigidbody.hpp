@@ -6,6 +6,9 @@
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_odeiv2.h>
 
+
+
+
 class RigidBody{
 public:
   RigidBody(const double mass, const double time);
