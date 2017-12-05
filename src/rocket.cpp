@@ -5,6 +5,7 @@
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_math.h>
 
 #include "common.hpp"
 #include "earth.hpp"
