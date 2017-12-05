@@ -111,6 +111,10 @@ glm::vec4 Rocket::getThrustDirectionGLM(){
   return glmthrust;
 }
 
+unsigned int Rocket::getStageProgress() {
+  return stage;
+}
+
 void Rocket::recomputeInertiaTensor(){
   double it[9];
 

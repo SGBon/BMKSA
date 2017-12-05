@@ -25,12 +25,25 @@
 // project
 #include "meshdata.hpp"
 #include "vao.hpp"
+#include "rocket.hpp"
 
-// global values
+// global constants
 static const std::string FRAGMENT_SHADER_PATH = "../render.fs";
 static const std::string VERTEX_SHADER_PATH = "../render.vs";
 static const char* UMODELVIEW = "uModelView";
 static const char* UPROJECTION = "uProjection";
+static const char* UCOLOR = "uColor";
+
+/// colours are like ROY G BIV
+static const glm::vec4 STAGE_COLOURS[Rocket::NUMBER_OF_STAGES] = {
+  glm::vec4(1.0, 0.2, 0.2, 1.0)
+  , glm::vec4(1.0, 0.5, 0.2, 1.0)
+  , glm::vec4(1.0, 1.0, 0.2, 1.0)
+  , glm::vec4(0.1, 0.8, 0.1, 1.0)
+  , glm::vec4(0.2, 0.2, 1.0, 1.0)
+};
+
+// global variables
 static std::vector<RSimView::VertexArrayObject> VAO_LIST;
 static Rocket* ROCKET_MODEL = NULL;
 static int ROCKET_ITER = 0;
@@ -175,6 +188,7 @@ void onDisplay(void) {
     glm::mat4 view(glm::lookAt(eye, center, up));
     glm::mat4 projection(PROJECTION);
     glm::mat4 modelView = ROTATION_MATRIX*view;
+    glm::vec4 color = STAGE_COLOURS[ROCKET_MODEL->getStageProgress()];
 
     // draw stuff
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -185,10 +199,12 @@ void onDisplay(void) {
         // get uniforms
         int uModelView = glGetUniformLocation(vao.program, UMODELVIEW);
         int uProjection = glGetUniformLocation(vao.program, UPROJECTION);
+        int uColor = glGetUniformLocation(vao.program, UCOLOR);
 
         // set uniforms
-        glUniformMatrix4fv(uModelView, 1, 0, glm::value_ptr(modelView));
-        glUniformMatrix4fv(uProjection, 1, 0, glm::value_ptr(projection));
+        glUniformMatrix4fv(uModelView, 1, false, glm::value_ptr(modelView));
+        glUniformMatrix4fv(uProjection, 1, false, glm::value_ptr(projection));
+        glUniform4fv(uColor, 1, glm::value_ptr(color));
 
         // draw it
         glBindVertexArray(vao.id);
@@ -308,15 +324,18 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     int vertex_shader = buildShader(GL_VERTEX_SHADER, VERTEX_SHADER_PATH);
     if(fragment_shader == 0) {
         printf("error loading fragment shader\n");
+        return 1;
     }
     if(vertex_shader == 0) {
         printf("error loading vertex shader\n");
+        return 1;
     }
 
     // setup program
     GLuint program = buildProgram(vertex_shader, fragment_shader);
     if(program == 0) {
         std::cerr << "error occured loading program" << std::endl;
+        return 1;
     }
 
     RSimView::VertexArrayObject payload_vao = RSimView::loadMeshIntoBuffer(

@@ -9,6 +9,15 @@ public:
   Rocket(const double dt);
   ~Rocket();
 
+  enum stage_progress{
+      S1LAUNCH,
+      S1ASCENT,
+      S1COURSE,
+      S2SPLIT,
+      S2BURN,
+      NUMBER_OF_STAGES // keep track of stage progress size
+    } stage_progress;
+
   void step();
 
   void print();
@@ -16,6 +25,8 @@ public:
   glm::vec4 getPositionGLM();
 
   glm::vec4 getThrustDirectionGLM();
+
+  unsigned int getStageProgress();
 
 private:
   unsigned int stage; /* stage rocket is on */
@@ -26,14 +37,6 @@ private:
   RigidBody rigid_body;
 
   const double radius;
-
-  enum stage_progress{
-    S1LAUNCH,
-    S1ASCENT,
-    S1COURSE,
-    S2SPLIT,
-    S2BURN
-  } stage_progress;
 
   double target_orbital_velocity;
 

@@ -12,7 +12,11 @@ int main(int argc, char** argv) {
   Rocket rocket(0.01);
   rocket.print();
   int ret = demoRocket(rocket, &argc, argv);
-  rocket.print();
+  if(ret != 0) {
+    printf("An error occured.\n");
+  } else {
+    rocket.print();
+  }
 
-  return 0;
+  return ret;
 }
