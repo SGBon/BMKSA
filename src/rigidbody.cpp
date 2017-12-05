@@ -23,7 +23,6 @@ static const size_t STATE_MASS = 19;
 
 static int rigid_body_ode(double t, const double y[], double dydt[], void *params){
   RigidBody const *rigidbody = (RigidBody *) params;
-  int s = 0;
   double dm = rigidbody->getMassFlow(); /* loss of mass due to fuel */
   const double origin[3] = {0,0,0};
   gsl_vector_const_view origin_view = gsl_vector_const_view_array(origin,3);
@@ -108,22 +107,32 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   /* compute dr/dt TODO: turn these into matrix views on stack arrays */
   const gsl_matrix *rotation = &r_view.matrix;
   gsl_matrix *product = gsl_matrix_alloc(3,3);
+  gsl_matrix *Ibody = gsl_matrix_calloc(3,3);
   gsl_matrix *Iinv = gsl_matrix_alloc(3,3);
   gsl_vector *w = gsl_vector_alloc(3);
 
-  gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, rigidbody->getInertiaTensor(), rotation, 0.0, product);
+  gsl_matrix_memcpy(Ibody,rigidbody->getInertiaTensor());
+  gsl_matrix_set(Ibody,0,0,1.0/Ibody->data[0]);
+  gsl_matrix_set(Ibody,1,1,1.0/Ibody->data[4]);
+  gsl_matrix_set(Ibody,2,2,1.0/Ibody->data[8]);
+
+  gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, Ibody, rotation, 0.0, product);
   gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, rotation, product, 0.0, Iinv);
+
+    /*
+  printf("Iinv: [");
+  for(int i = 0; i < 9; ++i){
+    if(i % 3 == 0){
+        printf("\n");
+    }
+    printf("%lf ",rigidbody->getInertiaTensor()->data[i]);
+  }
+  printf("] \n");
+    */
 
   gsl_vector_const_view angular_momentum = gsl_vector_const_view_array(&y[STATE_ANGULAR_MOMENTUM_START],STATE_ANGULAR_MOMENTUM_SIZE);
 
-  /* inertia inversion data */
-  gsl_permutation *p = gsl_permutation_alloc(3);
-
-  /* compute inverse of inertia tensor */
-  gsl_linalg_LU_decomp(Iinv,p,&s);
-  gsl_linalg_LU_solve(Iinv,p,&angular_momentum.vector,w);
-
-  gsl_permutation_free(p);
+  gsl_blas_dgemv(CblasNoTrans,1.0,Iinv,&angular_momentum.vector,0.0,w);
 
   gsl_matrix *w_star = RigidBody::star(w);
 
@@ -131,6 +140,7 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
 
   gsl_vector_free(w);
   gsl_matrix_free(Iinv);
+  gsl_matrix_free(Ibody);
   gsl_matrix_free(w_star);
 
   /* set dx/dt as velocity (P/m) */
@@ -209,17 +219,18 @@ void RigidBody::update(const double dt){
   const int code = gsl_odeiv2_step_apply(this->ode_step,this->time,dt,this->state->data, error, NULL, NULL, this->ode_system);
   this->time += dt;
 
+    /*
   printf("Error: ");
   for(unsigned int i = 0; i < STATE_SIZE; ++i){
     printf("%lf ",error[i]);
   }
   printf("\n");
-  
+   */
 
   // throw in a switch statement here ok
   switch(code) {
     case GSL_SUCCESS:
-      std::cout << "successfully" << std::endl;
+      //std::cout << "successfully" << std::endl;
       break;
 
     case GSL_FAILURE:
