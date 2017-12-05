@@ -1,5 +1,6 @@
 #include "rigidbody.hpp"
 
+#include <cassert>
 #include <cstring>
 #include <cstdio>
 #include <iostream>
@@ -163,8 +164,7 @@ RigidBody::RigidBody(const double mass, const double time):
     ode_system->dimension = STATE_SIZE;
     ode_system->params = this;
 
-    this->ode_driver = gsl_odeiv2_driver_alloc_y_new(ode_system, gsl_odeiv2_step_rkf45,
-      0.1, 1e-6, 1e-7);
+    this->ode_step = gsl_odeiv2_step_alloc(gsl_odeiv2_step_rkf45, STATE_SIZE);
     //gsl_odeiv2_driver_set_hmax(this->ode_driver,10);
   }
 
@@ -173,7 +173,7 @@ RigidBody::~RigidBody(){
   gsl_vector_free(this->thrust_direction);
   gsl_matrix_free(this->inertia_tensor);
 
-  gsl_odeiv2_driver_free(this->ode_driver);
+  gsl_odeiv2_step_free(this->ode_step);
   delete this->ode_system;
 }
 
@@ -194,7 +194,42 @@ gsl_matrix *RigidBody::star(gsl_vector *vector){
 }
 
 void RigidBody::update(const double dt){
-  const int code = gsl_odeiv2_driver_apply(this->ode_driver,&this->time,this->time + dt,this->state->data);
+  // ODE
+  double error[STATE_SIZE];
+  const int code = gsl_odeiv2_step_apply(this->ode_step,this->time,dt,this->state->data, error, NULL, NULL, this->ode_system);
+  this->time += dt;
+
+  printf("Error: ");
+  for(unsigned int i = 0; i < STATE_SIZE; ++i){
+    printf("%lf ",error[i]);
+  }
+  printf("\n");
+  
+
+  // throw in a switch statement here ok
+  switch(code) {
+    case GSL_SUCCESS:
+      std::cout << "successfully" << std::endl;
+      break;
+
+    case GSL_FAILURE:
+      std::cerr << "rigidbody update: GSL_FAILURE" << std::endl;
+      break;
+
+    case GSL_EFAULT:
+      std::cerr << "rigidbody update: A fault in your e" << std::endl;
+      break;
+
+    case GSL_EBADFUNC:
+      std::cerr << "rigidbody update: Oh my, that's a bad func in your e" << std::endl;
+      break;
+
+    default:
+      assert(false);
+      break;
+  }
+
+  //this->state->data = result;
   nop();
 }
 
@@ -208,12 +243,12 @@ gsl_vector const *RigidBody::getThrustDirection() const {
 
 void RigidBody::setThrustDirection(double direction[]){
   memcpy(this->thrust_direction->data,direction,3*sizeof(double));
-  gsl_odeiv2_driver_reset(this->ode_driver);
+  gsl_odeiv2_step_reset(this->ode_step);
 }
 
 void RigidBody::updateInertiaTensor(double inertia_tensor[]){
   memcpy(this->inertia_tensor->data,inertia_tensor,9*sizeof(double));
-  gsl_odeiv2_driver_reset(this->ode_driver);
+  gsl_odeiv2_step_reset(this->ode_step);
 }
 
 double RigidBody::getMass(){
@@ -235,7 +270,7 @@ void RigidBody::throttle(double throttle){
     throttle = 0;
   }
   mass_flow = throttle*max_flow;
-  gsl_odeiv2_driver_reset(this->ode_driver);
+  gsl_odeiv2_step_reset(this->ode_step);
 }
 
 double RigidBody::getMassFlow() const {
@@ -247,7 +282,7 @@ void RigidBody::nextstage(double newmass){
   mass_flow = merlinvac_fuel;
   max_flow = mass_flow;
   gsl_vector_set(this->state,19,newmass);
-  gsl_odeiv2_driver_reset(this->ode_driver);
+  gsl_odeiv2_step_reset(this->ode_step);
 }
 
 double RigidBody::getTime(){
@@ -256,7 +291,7 @@ double RigidBody::getTime(){
 
 void RigidBody::setCentreOfMass(double com[]){
   memcpy(this->centre_of_mass,com,3*sizeof(double));
-  gsl_odeiv2_driver_reset(this->ode_driver);
+  gsl_odeiv2_step_reset(this->ode_step);
 }
 
 double const* RigidBody::getCentreOfMass() const {

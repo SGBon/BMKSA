@@ -9,7 +9,7 @@
 #include "demorocket.hpp"
 
 int main(int argc, char** argv) {
-  Rocket rocket(0.1);
+  Rocket rocket(0.01);
   rocket.print();
   int ret = demoRocket(rocket, &argc, argv);
   rocket.print();

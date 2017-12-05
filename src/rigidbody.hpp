@@ -62,7 +62,7 @@ private:
   gsl_matrix *inertia_tensor;
 
   gsl_odeiv2_system *ode_system;
-  gsl_odeiv2_driver *ode_driver;
+  gsl_odeiv2_step *ode_step;
 };
 
 #endif /*header guard */
