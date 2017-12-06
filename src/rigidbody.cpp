@@ -101,6 +101,11 @@ static int rigid_body_ode(double t, const double y[], double dydt[], void *param
   gsl_vector_free(gdir);
 
   /* TODO: drag */
+  const double drag_coefficient = -0.05;
+  gsl_vector *drag = gsl_vector_alloc(3);
+  memcpy(drag->data,&y[12],3*sizeof(double));
+  gsl_vector_scale(drag,drag_coefficient/y[19]);
+  gsl_vector_add(force,drag);
 
   /* TODO: lift */
 
