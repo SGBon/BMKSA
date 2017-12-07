@@ -50,10 +50,11 @@ static std::vector<RSimView::VertexArrayObject> VAO_LIST;
 static Rocket* ROCKET_MODEL = NULL;
 static int ROCKET_ITER = 0;
 static glm::mat4 ROTATION_MATRIX;
+static bool USE_SPREADSHEET = false;
 
 // updates rocket VAO to reflect changes
 void updateView(double height, glm::vec3 thrust_direction, int stage) {
-    double max_height = 112*1e3;
+    double max_height = 100*1e3;
     glm::vec3 ground_color(205.0/255, 111.0/255, 1.0);
     glm::vec3 space_color(33.0/255, 27.0/255, 53.0/255);
     //ROTATION_MATRIX = ROCKET_MODEL->getRotationMatrix(); //glm::orientation(thrust_direction, glm::vec3(0.0,1.0f,0.0));
@@ -298,7 +299,7 @@ void onIdle() {
     glm::vec3 thrust_direction(thrust_direction_vec4.x,thrust_direction_vec4.y,thrust_direction_vec4.z);
     int stage = 0;
     //printf("onIdle: step %d height %f rotation %f, %f, %f, %f\n", ROCKET_ITER, height, thrust_direction_vec4.x, thrust_direction_vec4.y, thrust_direction_vec4.z, thrust_direction_vec4.w);
-    ROCKET_MODEL->print();
+    ROCKET_MODEL->print(USE_SPREADSHEET);
     updateView(height, thrust_direction, stage);
     ROCKET_ITER++;
 
@@ -311,7 +312,10 @@ void onIdle() {
 
 } // namespace window
 
-int demoRocket(Rocket& rocket, int* argc, char** argv) {
+int demoRocket(Rocket& rocket, bool use_spreadsheet, int* argc, char** argv) {
+    // set that
+    USE_SPREADSHEET = use_spreadsheet;
+
     // load payload
     RSimView::MeshData first_stage_mesh = RSimView::firstStageMeshData();
     RSimView::MeshData second_stage_mesh = RSimView::secondStageMeshData();
