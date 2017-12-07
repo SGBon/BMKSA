@@ -192,8 +192,8 @@ void updateProjection(int width, int height) {
 void onDisplay(void) {
     // create view
     glm::vec3 rpos(ROCKET_MODEL->getPositionGLM());
-    const float rad = (1.0 - fmin(normalize(rpos.y,0.0,10000),0.95))*500;
-    glm::vec3 eye(rad,rpos.y,rad);
+    const float rad = (1.0 - fmin(normalize(rpos.y,0.0,10000),0.85))*500;
+    glm::vec3 eye(rpos.x+rad,rpos.y,rpos.z);
     //std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
     glm::vec3 center(ROCKET_MODEL->getPositionGLM());
     glm::vec3 up(0.0f,1.0f,0.0f);
