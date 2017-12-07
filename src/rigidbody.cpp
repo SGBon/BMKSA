@@ -298,9 +298,9 @@ void RigidBody::printSpreadsheetStyle(){
   }
 
   // print rotation
-  for(unsigned int i = 0; i < STATE_ROTATION_SIZE; ++i){
-    printf("%lf ",this->state->data[STATE_ROTATION_START+i]);
-  }
+  //for(unsigned int i = 0; i < STATE_ROTATION_SIZE; ++i){
+  //  printf("%lf ",this->state->data[STATE_ROTATION_START+i]);
+  //}
 
   // print linear momentum
   for(unsigned int i = 0; i < STATE_LINEAR_MOMENTUM_SIZE; ++i){
