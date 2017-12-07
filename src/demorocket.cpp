@@ -14,6 +14,9 @@
 #include <GL/gl.h>
 #include <GL/freeglut_ext.h>
 
+// gsl
+#include <gsl/gsl_math.h>
+
 // GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -68,7 +71,7 @@ void updateView(double height, glm::vec3 thrust_direction, int stage) {
     /* TODO: differentiate rocket from earth better */
     for(int i = 0; i < 3; ++i){
       RSimView::VertexArrayObject *vao = &VAO_LIST[i];
-      glm::vec4 position = ROCKET_MODEL->getPositionGLM();
+      glm::vec3 position(ROCKET_MODEL->getPositionGLM());
       vao->translation = position;
     }
 
@@ -188,7 +191,7 @@ void updateProjection(int width, int height) {
 
 void onDisplay(void) {
     // create view
-    glm::vec3 rpos = ROCKET_MODEL->getPositionGLM();
+    glm::vec3 rpos(ROCKET_MODEL->getPositionGLM());
     const float rad = (1.0 - fmin(normalize(rpos.y,0.0,10000),0.95))*500;
     glm::vec3 eye(rad,rpos.y,rad);
     //std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
