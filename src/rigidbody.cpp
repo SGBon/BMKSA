@@ -282,10 +282,34 @@ double RigidBody::getMass(){
 }
 
 void RigidBody::print(){
-  printf("State: ");
-  for(unsigned int i = 0; i < STATE_SIZE; ++i){
-    printf("%lf ",this->state->data[i]);
+  printf("State: \n  position: ");
+  // print position
+  for(unsigned int i = 0; i < STATE_POSITION_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_POSITION_START+i]);
   }
+
+  // print rotation
+  printf("\n  rotation: ");
+  for(unsigned int i = 0; i < STATE_ROTATION_SIZE; ++i){
+    if(i % 3 == 0) {
+      printf("\n            ");
+    }
+    printf("%lf ",this->state->data[STATE_ROTATION_START+i]);
+  }
+
+  // print linear momentum
+  printf("\nLinear momentum: ");
+  for(unsigned int i = 0; i < STATE_LINEAR_MOMENTUM_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_LINEAR_MOMENTUM_START+i]);
+  }
+
+  // print angular momentum
+  printf("\nAngular momentum: ");
+  for(unsigned int i = 0; i < STATE_ANGULAR_MOMENTUM_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_ANGULAR_MOMENTUM_START+i]);
+  }
+
+  // done
   printf("\n");
 }
 
