@@ -12,38 +12,38 @@
 
 /// Namespace for rocket sim meshes
 namespace RSimView {
-// typedefs for GL appropriate numerical types
-typedef GLfloat FloatT;
-typedef GLuint IndexT;
-typedef GLsizei SizeT;
+  // typedefs for GL appropriate numerical types
+  typedef GLfloat FloatT;
+  typedef GLuint IndexT;
+  typedef GLsizei SizeT;
 
-/// Holds onto the points and orderings of a mesh to load into openGL.
-class MeshData {
-public:
-    /// Obtain references to the different datatypes. 
-    MeshData(FloatT* pvertices, FloatT* pnormals, SizeT pvertex_length, IndexT* pindices, SizeT index_length);
+  /// Holds onto the points and orderings of a mesh to load into openGL.
+  class MeshData {
+  public:
+      /// Obtain references to the different datatypes.
+      MeshData(FloatT* pvertices, FloatT* pnormals, SizeT pvertex_length, IndexT* pindices, SizeT index_length);
 
-    FloatT* vertices;
-    FloatT* normals;
-    IndexT* indices;
-    SizeT vertex_length;
-    SizeT index_count;
-};
+      FloatT* vertices;
+      FloatT* normals;
+      IndexT* indices;
+      SizeT vertex_length;
+      SizeT index_count;
+  };
 
-/// Build the vertices and such for a satellite payload thing
-MeshData payloadMeshData();
+  /// Build the vertices and such for a satellite payload thing
+  MeshData payloadMeshData();
 
-/// Build the vertices and such for a rocket
-MeshData rocketMeshData();
+  /// Build the vertices and such for a rocket
+  MeshData rocketMeshData();
 
-/// First stage of rocket mesh
-MeshData firstStageMeshData();
+  /// First stage of rocket mesh
+  MeshData firstStageMeshData();
 
-/// Second stage of rocket mesh
-MeshData secondStageMeshData();
+  /// Second stage of rocket mesh
+  MeshData secondStageMeshData();
 
-/// Build the vertices and such for a cube
-MeshData cubeMeshData();
+  /// Build the vertices and such for a cube
+  MeshData cubeMeshData();
 
 } // namespace RSimView
 

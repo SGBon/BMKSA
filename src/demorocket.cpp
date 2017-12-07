@@ -3,8 +3,6 @@
 **/
 #include "demorocket.hpp"
 
-
-
 // STD
 #include <iostream>
 #include <string>
@@ -26,6 +24,7 @@
 #include "meshdata.hpp"
 #include "vao.hpp"
 #include "rocket.hpp"
+#include "tiny_obj_loader.h"
 
 // global constants
 static const std::string FRAGMENT_SHADER_PATH = "../render.fs";
@@ -347,6 +346,20 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     VAO_LIST.push_back(payload_vao);
     VAO_LIST.push_back(first_stage_vao);
     VAO_LIST.push_back(second_stage_vao);
+
+    /* load earth */
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string err = tinyobj::LoadObj(shapes, materials, "sphere.obj", 0);
+    if(err.size() != 0){
+        std::cerr << "Error loading object file: " << err << std::endl;
+        exit(-1);
+    }
+
+    RSimView::MeshData earth_mesh(shapes[0].mesh.positions.data(),shapes[0].mesh.normals.data(),
+      shapes[0].mesh.positions.size(),shapes[0].mesh.indices.data(),shapes[0].mesh.indices.size());
+    RSimView::VertexArrayObject earth_vao = RSimView::loadMeshIntoBuffer(earth_mesh,program);
+    VAO_LIST.push_back(earth_vao);
 
     // hookup glut functions
     glutDisplayFunc(window::onDisplay);
