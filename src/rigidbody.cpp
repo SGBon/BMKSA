@@ -282,7 +282,7 @@ double RigidBody::getMass(){
 }
 
 void RigidBody::print(){
-  printf("State: \n  position: ");
+  printf("T=%lfs: \n  position: ", time);
   // print position
   for(unsigned int i = 0; i < STATE_POSITION_SIZE; ++i){
     printf("%lf ",this->state->data[STATE_POSITION_START+i]);
