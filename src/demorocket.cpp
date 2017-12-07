@@ -50,7 +50,7 @@ static glm::mat4 ROTATION_MATRIX;
 
 // updates rocket VAO to reflect changes
 void updateView(double height, glm::vec3 thrust_direction, int stage) {
-    double max_height = 112*1e3;
+    double max_height = 100*1e3;
     glm::vec3 ground_color(205.0/255, 111.0/255, 1.0);
     glm::vec3 space_color(33.0/255, 27.0/255, 53.0/255);
     ROTATION_MATRIX = glm::orientation(thrust_direction, glm::vec3(0,0,-1));
