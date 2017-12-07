@@ -281,7 +281,42 @@ double RigidBody::getMass(){
   return gsl_vector_get(this->state,19);
 }
 
-void RigidBody::print(){
+
+void RigidBody::print(bool use_spreadsheet) {
+  if(use_spreadsheet) {
+    printSpreadsheetStyle();
+  } else {
+    printDefaultStyle();
+  }
+}
+
+void RigidBody::printSpreadsheetStyle(){
+  printf("%lfs ", time);
+  // print position
+  for(unsigned int i = 0; i < STATE_POSITION_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_POSITION_START+i]);
+  }
+
+  // print rotation
+  for(unsigned int i = 0; i < STATE_ROTATION_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_ROTATION_START+i]);
+  }
+
+  // print linear momentum
+  for(unsigned int i = 0; i < STATE_LINEAR_MOMENTUM_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_LINEAR_MOMENTUM_START+i]);
+  }
+
+  // print angular momentum
+  for(unsigned int i = 0; i < STATE_ANGULAR_MOMENTUM_SIZE; ++i){
+    printf("%lf ",this->state->data[STATE_ANGULAR_MOMENTUM_START+i]);
+  }
+
+  // print mass
+  printf("%lf\n", this->state->data[STATE_MASS]);
+}
+
+void RigidBody::printDefaultStyle(){
   printf("T=%lfs: \n  position: ", time);
   // print position
   for(unsigned int i = 0; i < STATE_POSITION_SIZE; ++i){
@@ -309,8 +344,8 @@ void RigidBody::print(){
     printf("%lf ",this->state->data[STATE_ANGULAR_MOMENTUM_START+i]);
   }
 
-  // done
-  printf("\n");
+  // print mass
+  printf("mass: %lf\n", this->state->data[STATE_MASS]);
 }
 
 void RigidBody::throttle(double throttle){

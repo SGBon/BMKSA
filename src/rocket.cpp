@@ -87,8 +87,8 @@ void Rocket::step(){
   }
 }
 
-void Rocket::print(){
-  this->rigid_body.print();
+void Rocket::print(bool use_spreadsheet){
+  this->rigid_body.print(use_spreadsheet);
 }
 
 glm::vec4 Rocket::getPositionGLM(){

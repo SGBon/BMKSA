@@ -35,7 +35,7 @@ public:
 
   double getMass();
 
-  void print();
+  void print(bool use_spreadsheet=false);
 
   /* set speed and fuel consumption */
   void throttle(double throttle);
@@ -66,6 +66,10 @@ private:
 
   gsl_odeiv2_system *ode_system;
   gsl_odeiv2_step *ode_step;
+
+  // default printing style
+  void printDefaultStyle();
+  void printSpreadsheetStyle();
 };
 
 #endif /*header guard */

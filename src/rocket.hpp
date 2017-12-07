@@ -20,7 +20,7 @@ public:
 
   void step();
 
-  void print();
+  void print(bool use_spreadsheet=false);
 
   glm::vec4 getPositionGLM();
 
