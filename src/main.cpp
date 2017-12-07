@@ -1,5 +1,6 @@
 // C Standard Libraries
 #include <cstdio>
+#include <cstring>
 
 // GSL
 #include <gsl/gsl_matrix.h>
