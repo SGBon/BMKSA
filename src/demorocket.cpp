@@ -19,12 +19,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include "glm/ext.hpp"
 
 // project
 #include "meshdata.hpp"
 #include "vao.hpp"
 #include "rocket.hpp"
 #include "tiny_obj_loader.h"
+#include "earth.hpp"
+#include "common.hpp"
 
 // global constants
 static const std::string FRAGMENT_SHADER_PATH = "../render.fs";
@@ -53,13 +56,20 @@ void updateView(double height, glm::vec3 thrust_direction, int stage) {
     double max_height = 112*1e3;
     glm::vec3 ground_color(205.0/255, 111.0/255, 1.0);
     glm::vec3 space_color(33.0/255, 27.0/255, 53.0/255);
-    ROTATION_MATRIX = glm::orientation(thrust_direction, glm::vec3(0,0,-1));
+    //ROTATION_MATRIX = ROCKET_MODEL->getRotationMatrix(); //glm::orientation(thrust_direction, glm::vec3(0.0,1.0f,0.0));
+    ROTATION_MATRIX = glm::rotate(glm::mat4(1.0),(float)M_PI/2,glm::vec3(1.0,0.0,0.0));
     //std::cout << "updateView" << std::endl;
 
     float percent_up = fmin(max_height, height)/max_height;
     glm::vec3 clear_color = (1-percent_up)*ground_color + percent_up*space_color;
     //printf("height %f percent %f\n", height, percent_up);
 
+    /* TODO: differentiate rocket from earth better */
+    for(int i = 0; i < 3; ++i){
+      RSimView::VertexArrayObject *vao = &VAO_LIST[i];
+      glm::vec4 position = ROCKET_MODEL->getPositionGLM();
+      vao->translation = position;
+    }
 
     glClearColor(clear_color.x,clear_color.y,clear_color.z,1.0);
     glutPostRedisplay();
@@ -172,28 +182,41 @@ float CAMERA_LONGITUDE, CAMERA_COLATITUDE, CAMERA_RADIUS;
 
 void updateProjection(int width, int height) {
     float ratio = 1.0f * width / height;
-    PROJECTION = glm::perspective(45.0f, ratio, 1.0f, 200.0f);
+    PROJECTION = glm::perspective(45.0f, ratio, 1.0f, 10000000.0f);
 }
 
 void onDisplay(void) {
     // create view
-    glm::vec3 eye(CAMERA_RADIUS*glm::vec3(
-        cos(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
-        , sin(CAMERA_LONGITUDE)*sin(CAMERA_COLATITUDE)
-        , cos(CAMERA_COLATITUDE)));
+    glm::vec3 rpos = ROCKET_MODEL->getPositionGLM();
+    const float rad = (1.0 - fmin(normalize(rpos.y,0.0,10000),0.95))*500;
+    glm::vec3 eye(rad,rpos.y,rad);
     //std::cout << "eye: " << eye.x << ", " << eye.y << ", " << eye.z << std::endl;
-    glm::vec3 center(0.0f,0,20.0f);
-    glm::vec3 up(0.0f,0.0,-1.0);
+    glm::vec3 center(ROCKET_MODEL->getPositionGLM());
+    glm::vec3 up(0.0f,1.0f,0.0f);
     glm::mat4 view(glm::lookAt(eye, center, up));
     glm::mat4 projection(PROJECTION);
-    glm::mat4 modelView = ROTATION_MATRIX*view;
+    glm::mat4 modelView = view;
     glm::vec4 color = STAGE_COLOURS[ROCKET_MODEL->getStageProgress()];
+    glm::vec4 earth_color = glm::vec4(0.0,0.8,0.2,1.0);
+    glm::mat4 earth_model = glm::mat4(1.0)*view;
 
     // draw stuff
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    int obj = 0;
     for(RSimView::VertexArrayObject vao : VAO_LIST) {
         // here's the program we're using
         glUseProgram(vao.program);
+
+        glm::mat4 translation = glm::translate(vao.translation);
+        glm::mat4 scale = glm::scale(vao.scale);
+        glm::mat4 mvts;
+        if(obj < 3){
+          glm::mat4 intrans = glm::inverse(translation);
+          glm::mat4 origin_rotation = ROTATION_MATRIX*intrans;
+          mvts = view*scale*translation*ROTATION_MATRIX;
+        }else{
+          mvts = earth_model*translation*scale;
+        }
 
         // get uniforms
         int uModelView = glGetUniformLocation(vao.program, UMODELVIEW);
@@ -201,13 +224,18 @@ void onDisplay(void) {
         int uColor = glGetUniformLocation(vao.program, UCOLOR);
 
         // set uniforms
-        glUniformMatrix4fv(uModelView, 1, false, glm::value_ptr(modelView));
+        glUniformMatrix4fv(uModelView, 1, false, glm::value_ptr(mvts));
         glUniformMatrix4fv(uProjection, 1, false, glm::value_ptr(projection));
-        glUniform4fv(uColor, 1, glm::value_ptr(color));
+        if(obj < 3){
+          glUniform4fv(uColor, 1, glm::value_ptr(color));
+        }else{
+          glUniform4fv(uColor, 1, glm::value_ptr(earth_color));
+        }
 
         // draw it
         glBindVertexArray(vao.id);
         glDrawElements(GL_TRIANGLES, vao.index_count, GL_UNSIGNED_INT, NULL);
+        ++obj;
     }
     glutSwapBuffers();
 }
@@ -267,7 +295,7 @@ void onIdle() {
     ROCKET_MODEL->step();
     double height = ROCKET_MODEL->getPositionGLM().y;
     glm::vec4 thrust_direction_vec4(ROCKET_MODEL->getThrustDirectionGLM());
-    glm::vec3 thrust_direction(thrust_direction_vec4.x,1.0,-thrust_direction_vec4.y);
+    glm::vec3 thrust_direction(thrust_direction_vec4.x,thrust_direction_vec4.y,thrust_direction_vec4.z);
     int stage = 0;
     //printf("onIdle: step %d height %f rotation %f, %f, %f, %f\n", ROCKET_ITER, height, thrust_direction_vec4.x, thrust_direction_vec4.y, thrust_direction_vec4.z, thrust_direction_vec4.w);
     ROCKET_MODEL->print();
@@ -359,6 +387,12 @@ int demoRocket(Rocket& rocket, int* argc, char** argv) {
     RSimView::MeshData earth_mesh(shapes[0].mesh.positions.data(),shapes[0].mesh.normals.data(),
       shapes[0].mesh.positions.size(),shapes[0].mesh.indices.data(),shapes[0].mesh.indices.size());
     RSimView::VertexArrayObject earth_vao = RSimView::loadMeshIntoBuffer(earth_mesh,program);
+
+    /* set location and scale of earth */
+
+    earth_vao.translation = glm::vec3(0,earth.position[1],0);
+    earth_vao.scale = glm::vec3(earth.radius,earth.radius,earth.radius);
+
     VAO_LIST.push_back(earth_vao);
 
     // hookup glut functions

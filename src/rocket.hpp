@@ -26,6 +26,8 @@ public:
 
   glm::vec4 getThrustDirectionGLM();
 
+  glm::mat4 getRotationMatrix();
+
   unsigned int getStageProgress();
 
 private:

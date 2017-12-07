@@ -2,6 +2,7 @@
 #define RSIM_VAO_HPP
 
 #include "meshdata.hpp"
+#include <glm/glm.hpp>
 
 namespace RSimView {
 /**
@@ -12,6 +13,10 @@ public:
     GLuint program;
     GLsizei index_count;
     GLuint id; // vao index
+    glm::vec3 translation;
+    glm::vec3 scale;
+
+    VertexArrayObject();
 };
 
 VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program);

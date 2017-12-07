@@ -7,6 +7,8 @@
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_math.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "common.hpp"
 #include "earth.hpp"
 
@@ -109,6 +111,19 @@ glm::vec4 Rocket::getThrustDirectionGLM(){
   glmthrust.z = gslthrust->data[2];
   glmthrust.w = 1.0;
   return glmthrust;
+}
+
+glm::mat4 Rocket::getRotationMatrix(){
+  gsl_vector const *gslpos = this->rigid_body.getState();
+  double rotarray[16];
+  memset(rotarray,0,sizeof(double)*16);
+  memcpy(rotarray,&gslpos->data[3],9*sizeof(double));
+  rotarray[15] = 1.0;
+
+  glm::mat4 out = glm::mat4(glm::transpose(glm::make_mat3(rotarray)));
+
+  return out;
+
 }
 
 unsigned int Rocket::getStageProgress() {

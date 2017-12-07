@@ -5,6 +5,11 @@ namespace RSimView {
 const char* VPOSITION = "vPosition";
 const char* VNORMAL = "vNormal";
 
+VertexArrayObject::VertexArrayObject(){
+  this->translation = glm::vec3(0,0,0);
+  this->scale = glm::vec3(1,1,1);
+}
+
 
 VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
     // generate vertex array
@@ -18,7 +23,7 @@ VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
     size_t position_buffer_size = data.vertex_length*sizeof(FloatT);
     size_t normal_buffer_size = position_buffer_size;
     size_t index_buffer_size = data.index_count*sizeof(IndexT);
-    
+
     // generate vertex buffer
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);
@@ -46,7 +51,7 @@ VertexArrayObject loadMeshIntoBuffer(MeshData& data, GLuint program) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_buffer_size
         , data.indices, GL_STATIC_DRAW);
-    
+
     // done
     return vao;
 }
